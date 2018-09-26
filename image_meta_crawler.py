@@ -60,8 +60,15 @@ if __name__ == '__main__':
     p1.close()
     p1.join()
     #reduce/gather-------------------------------------------------------------------------------------------------
-    L={}
+    L,x = {},0
     for result in result_list:
         L[result.keys()[0]] = result[result.keys()[0]]
     stop=time.time()
     #share/print/write analysis------------------------------------------------------------------------------------
+    s = 'sid\tmake\tmodel\tcount\n'
+    for k in L:
+        for v in L[k]:
+            s += '%s\t%s\t%s\t%s\n'%(k,v[0],v[1],L[k][v])
+            x += L[k][v] #total files processed
+    with open(out_dir+'/meta.tsv','w') as f: f.write(s)
+    print('completed processing of %s image files in %s sec'%(x,(round(stop-start,2))))
