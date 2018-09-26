@@ -1,2 +1,2 @@
-# auto_image
+# eco_image
 Tools for automatic manipulation of ecological image data sets
