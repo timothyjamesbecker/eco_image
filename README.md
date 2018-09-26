@@ -1,2 +1,2 @@
 # auto_image
-Tools for automatic manipulation of image data sets
+Tools for automatic manipulation of ecological image data sets
