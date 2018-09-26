@@ -1,5 +1,5 @@
 # eco_image
-Tools for automatic manipulation of ecological image data sets
+tools for automatic manipulation of ecological image data sets
 
 ### (1) exif metadata retrieval using the pypy exifread
 ```python
