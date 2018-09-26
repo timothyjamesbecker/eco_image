@@ -43,7 +43,7 @@ if __name__ == '__main__':
     #initialize----------------------------------------------------------------------------------------------------
     #file naming pattern: sid_segmentname_startdate_stop_date (x).JPG
     #where a sid is a unique latitude/longitude pair (pos int) and a segment name can have multiple sids associated
-    sids=sorted(list(set([int(x.rsplit('_')[0].rsplit('/')[-1]) for x in glob.glob(in_dir+'/*_*_*_*')])))
+    sids=sorted(list(set([int(x.rsplit('/')[-1].rsplit('_')[0]) for x in glob.glob(in_dir+'/*_*_*_*')])))
     print(sids)
     tag_set=set(['Image Make','Image Model'])
     S={}  #map every camera make and model to the sids
