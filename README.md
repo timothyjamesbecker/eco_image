@@ -6,3 +6,4 @@ tools for automatic manipulation of ecological image data sets
 import exifread
 with open(path,'rb') as f: tags = exifread.process_file(f)
 ```
+test
