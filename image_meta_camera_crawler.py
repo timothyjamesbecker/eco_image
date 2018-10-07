@@ -26,11 +26,12 @@ def collect_results(result):
     result_list.append(result)
 
 #worker unit-----------------------------
-def set_image_meta(M,tag='0th',code=270):
+def set_image_meta(M):
     L = []
+    print('cpu %s has %s images'%())
     for f in M:
         E = piexif.load(f)   #read exif bytes from the image
-        E[tag][code] = M[f]  #set the tag code to the value in the map M[f]
+        E['0th'][270] = M[f]  #set the tag code to the value in the map M[f]
         piexif.insert(piexif.dump(E),f)   #write the new exif bytes into the image
         L += [f]             #save the result filename to report back
     return L
@@ -55,7 +56,7 @@ if __name__=='__main__':
     for p in P:  # each site in ||
         print('dispatching %s images to cpu %s'%(len(P[p]),p))
         p1.apply_async(set_image_meta,
-                       args=(P[p],'0th',270),
+                       args=(P[p]),
                        callback=collect_results)
         time.sleep(0.1)
     p1.close()
