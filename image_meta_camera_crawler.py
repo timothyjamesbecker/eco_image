@@ -66,5 +66,5 @@ if __name__=='__main__':
     X = []
     for l in result_list: X += l #append the processed files into the master list
     stop = time.time()
-    print('processed %s image files in %s sec'%(len(L),round(stop-start,2)))
+    print('processed %s image files in %s sec'%(len(X),round(stop-start,2)))
 #exit point----------------
