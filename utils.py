@@ -3,6 +3,9 @@ import sys
 import exifread
 import piexif
 
+def local_path():
+    return os.path.abspath(__file__).replace('utils.py','')
+
 #given an image file with exif metadat return set of the tags that are required
 def get_exif_tags(path,tag_set='all'):
     tags,T = {},{}
