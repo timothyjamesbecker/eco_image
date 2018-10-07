@@ -1,5 +1,6 @@
 import os
 import argparse
+import copy
 import time
 import glob
 import multiprocessing as mp
@@ -26,9 +27,9 @@ def collect_results(result):
     result_list.append(result)
 
 #worker unit-----------------------------
-def set_image_meta(M):
+def set_image_meta(M,p):
     L = []
-    print('cpu %s has %s images'%())
+    print('cpu %s has %s images'%(p,len(M)))
     for f in M:
         E = piexif.load(f)   #read exif bytes from the image
         E['0th'][270] = M[f]  #set the tag code to the value in the map M[f]
@@ -56,7 +57,7 @@ if __name__=='__main__':
     for p in P:  # each site in ||
         print('dispatching %s images to cpu %s'%(len(P[p]),p))
         p1.apply_async(set_image_meta,
-                       args=(P[p]),
+                       args=(P[p],p),
                        callback=collect_results)
         time.sleep(0.1)
     p1.close()
