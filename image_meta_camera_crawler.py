@@ -44,7 +44,7 @@ if __name__=='__main__':
     #check to see if the path is correct
     N = []
     for c in C:
-        if not os.path.exists(c): N += []
+        if not os.path.exists(c): N += [c]
     for n in N: C.pop(n)
     print('%s files have been found, proceeding to set exif metadata'%len(C))
     #partition the maps across cpus....-------------------------------------
