@@ -31,7 +31,7 @@ def set_image_meta(M,tag='0th',code=270):
     for f in M:
         E = piexif.load(f)   #read exif bytes from the image
         E[tag][code] = M[f]  #set the tag code to the value in the map M[f]
-        piexif.insert(E,f)   #write the new exif bytes into the image
+        piexif.insert(piexif.dump(E),f)   #write the new exif bytes into the image
         L += [f]             #save the result filename to report back
     return L
 
@@ -63,8 +63,8 @@ if __name__=='__main__':
     p1.close()
     p1.join()
     #collect results---------------------------------------------------------
-    L = []
-    for l in result_list: L += l #append the processed files into the master list
+    X = []
+    for l in result_list: X += l #append the processed files into the master list
     stop = time.time()
     print('processed %s image files in %s sec'%(len(L),round(stop-start,2)))
 #exit point----------------
