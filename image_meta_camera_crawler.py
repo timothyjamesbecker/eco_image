@@ -28,7 +28,7 @@ def collect_results(result):
 
 #worker unit-----------------------------
 def set_image_meta(M,p):
-    L = []
+    L = {}
     print('cpu %s has %s images'%(p,len(M)))
     for f in M:
         try:
