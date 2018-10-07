@@ -37,8 +37,7 @@ def set_image_meta(M,p):
             piexif.insert(piexif.dump(E),os.path.abspath(f))   #write the new exif bytes into the image
             L += [os.path.abspath(f)]             #save the result filename to report back
         except Exception as e:
-            print('Error on cpu %s'%(p))
-            print(e.message)
+            pass
     return L
 
 #entry point------------
