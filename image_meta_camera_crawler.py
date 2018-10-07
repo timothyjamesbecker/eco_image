@@ -34,7 +34,7 @@ def set_image_meta(M,p):
         E = piexif.load(os.path.abspath(f))   #read exif bytes from the image
         E['0th'][270] = M[f]  #set the tag code to the value in the map M[f]
         piexif.insert(piexif.dump(E),os.path.abspath(f))   #write the new exif bytes into the image
-        L += [f]             #save the result filename to report back
+        L += [os.path.abspath(f)]             #save the result filename to report back
     return L
 
 #entry point------------
