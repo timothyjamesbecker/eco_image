@@ -2,6 +2,7 @@ import os
 import argparse
 import time
 import glob
+import multiprocessing as mp
 import piexif
 import utils
 
@@ -40,5 +41,30 @@ if __name__=='__main__':
     #load the file to camera map and check the paths------------------------------------------------------
     with open(map_file_path,'r') as f:
         C={l.replace('\n','').rsplit(',')[0]:l.replace('\n','').rsplit(',')[1] for l in f.readlines()[2:]}
-    #
+    #check to see if the path is correct
+    N = []
+    for c in C:
+        if not os.path.exists(c): N += []
+    for n in N: C.pop(n)
+    print('%s files have been found, proceeding to set exif metadata'%len(C))
+    #partition the maps across cpus....-------------------------------------
+    P,j = {i:{} for i in range(cpus)},0
+    for i in range(len(C)):
+        c = C.keys()[i]
+        P[i%cpus][c] = C[c]
+    #dispatch the processes to all cores-------------------------------------
+    p1=mp.Pool(processes=cpus)
+    for p in P:  # each site in ||
+        print('dispatching %s images to cpu %s'%(len(P[p]),p))
+        p1.apply_async(set_image_meta,
+                       args=(P[p],'0th',270),
+                       callback=collect_results)
+        time.sleep(0.1)
+    p1.close()
+    p1.join()
+    #collect results---------------------------------------------------------
+    L = []
+    for l in result_list: L += l #append the processed files into the master list
     stop = time.time()
+    print('processed %s image files in %s sec'%(len(L),round(stop-start,2)))
+#exit point----------------
