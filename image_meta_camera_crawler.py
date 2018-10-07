@@ -48,10 +48,8 @@ if __name__=='__main__':
     for n in N: C.pop(n)
     print('%s files have been found, proceeding to set exif metadata'%len(C))
     #partition the maps across cpus....-------------------------------------
-    P,j = {i:{} for i in range(cpus)},0
-    for i in range(len(C)):
-        c = C.keys()[i]
-        P[i%cpus][c] = C[c]
+    P,cs = {i:{} for i in range(cpus)},C.keys()
+    for i in range(len(C)): P[i%cpus][cs[i]] = C[cs[i]]
     #dispatch the processes to all cores-------------------------------------
     p1=mp.Pool(processes=cpus)
     for p in P:  # each site in ||
