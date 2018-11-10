@@ -61,8 +61,3 @@ for i in range(len(raw)):
         data += [raw[i].replace('\n','').split('\t')]
         
         
-if len(str(int(t1[5:7])-1)) < 2:
-    print(str('0')+str(int(t1[5:7])-1))
-else:
-    print(str(int(t1[5:7])-1))
-    
