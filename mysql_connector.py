@@ -47,7 +47,6 @@ class MYSQL:
             print('uid: '),
             self.uid = sys.stdin.readline().replace('\n','')
             self.pwd = getpass.getpass(prompt='pwd: ',stream=None).replace('\n','')  # was stream=sys.sdin
-            print('password_internal is:%s'%self.pwd)
         try:  # connection start
             conn = msc.connect(host=self.host,port=str(self.port),database=self.db,user=self.uid,password=self.pwd)
         except RuntimeError:
@@ -59,6 +58,7 @@ class MYSQL:
         except Exception as err:
             print('start():ER5.Unknown_Error: {}'.format(err))
             self.errors += 'start():ER5.Unknown_Error: {}'.format(err)+'\n'
+            print(self.host,self.port,self.db,self.uid,self.pwd)
             pass
         return conn
 
