@@ -45,8 +45,8 @@ class MYSQL:
         conn = None
         if (not self.uid) and (not self.pwd):
             print('uid: '),
-            self.uid = sys.stdin.readline().replace('\n', '')
-            self.pwd = getpass.getpass(prompt='pwd: ',stream=None)  # was stream=sys.sdin
+            self.uid = sys.stdin.readline().replace('\n','')
+            self.pwd = getpass.getpass(prompt='pwd: ',stream=None).replace('\n','')  # was stream=sys.sdin
             print('password_internal is\n%s\n'%self.pwd)
         try:  # connection start
             conn = msc.connect(host=self.host, port=str(self.port), database=self.db, user=self.uid, password=self.pwd)
