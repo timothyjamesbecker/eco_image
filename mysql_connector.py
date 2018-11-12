@@ -10,7 +10,7 @@ class MYSQL:
     # constructor
     def __init__(self, srv, db, port=3306,uid=False, pwd=False):
         # The MSSQL variables for injection safe connection strings
-        self.srv = srv  # MYSQL server hostname to connect to
+        self.host = host  # MYSQL server hostname to connect to
         self.port = port
         self.db = db  # db name
         self.uid = uid
