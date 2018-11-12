@@ -30,7 +30,7 @@ else:
     tbl = 'test'
 uid,pwd=False,False
 local_path = os.path.dirname(os.path.abspath(__file__))
-if os.path.exist(local_path+'/flow.cfg'):
+if os.path.exists(local_path+'/flow.cfg'):
     with open(local_path+'/flow.cfg','r') as f:
         raw = f.readlines()
         uid = raw[0].replace('\n','')
