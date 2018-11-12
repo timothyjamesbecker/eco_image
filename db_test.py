@@ -36,7 +36,7 @@ if os.path.exists(local_path+'/flow.cfg'):
         uid = raw[0].replace('\n','')
         pwd = raw[1].replace('\n','')
 sql,v = 'select * from %s.%s;'%(db,tbl),[]
-conn = msc.connect(host=host,port=str(port),database=db,user=uid,password=pwd)
+conn = msc.connect(host=host,port=port,database=db,user=uid,password=pwd)
 cursor = conn.cursor(dictionary=True)
 cursor.execute(sql,v)
 # for row in cursor: res.append(row)
