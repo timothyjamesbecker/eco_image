@@ -2,7 +2,7 @@
 import os
 import time
 import argparse
-import mysql_connector
+import mysql.connector as msc
 
 des="""eco image db connection and CRUD tester"""
 parser = argparse.ArgumentParser(description=des,formatter_class=argparse.RawTextHelpFormatter)
@@ -35,7 +35,12 @@ if os.path.exists(local_path+'/flow.cfg'):
         raw = f.readlines()
         uid = raw[0].replace('\n','')
         pwd = raw[1].replace('\n','')
-with mysql_connector.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd) as dbo:
-    SQL = 'select * from %s.%s;'%(db,tbl)
-    res = dbo.query(SQL,[],r=True)
-    print(res)
+sql,v = 'select * from %s.%s;'%(db,tbl),[]
+conn = msc.connect(host=host,port=str(port),database=db,user=uid,password=pwd)
+cursor = conn.cursor(dictionary=True)
+cursor.execute(sql,v)
+# for row in cursor: res.append(row)
+res = cursor.fetchall()
+cursor.close()
+conn.close()
+print(res)
