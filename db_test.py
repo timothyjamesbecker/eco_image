@@ -28,8 +28,14 @@ if not args.table is None:
     tbl = args.table
 else:
     tbl = 'test'
-
-with mysql_connector.MYSQL(host=host,port=port,db=db) as dbo:
+uid,pwd=False,False
+local_path = os.path.dirname(os.path.abspath(__file__))
+if os.path.exist(local_path+'/flow.cfg'):
+    with open(local_path+'/flow.cfg','r') as f:
+        raw = f.readlines()
+        uid = raw[0].replace('\n','')
+        pwd = raw[1].replace('\n','')
+with mysql_connector.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd) as dbo:
     SQL = 'select * from %s.%s;'%(db,tbl)
     res = dbo.query(SQL,[],r=True)
     print(res)
