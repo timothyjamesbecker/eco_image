@@ -46,7 +46,7 @@ class MYSQL:
         if (not self.uid) and (not self.pwd):
             print('uid: '),
             self.uid = sys.stdin.readline().replace('\n', '')
-            self.pwd = getpass.getpass(prompt='pwd: ', stream=None)  # was stream=sys.sdin
+            self.pwd = getpass.getpass(prompt='pwd: ',stream=None)  # was stream=sys.sdin
         try:  # connection start
             conn = msc.connect(host=self.host, port=str(self.port), database=self.db, user=self.uid, password=self.pwd)
         except RuntimeError:

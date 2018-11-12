@@ -30,7 +30,6 @@ else:
     tbl = 'test'
 
 with mysql_connector.MYSQL(host=host,port=port,db=db) as dbo:
-    dbo.start()
     SQL = 'select * from %s.%s;'%(db,tbl)
     res = dbo.query(SQL,[],r=True)
     print(res)
