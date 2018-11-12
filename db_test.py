@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import os
 import time
 import argparse
@@ -5,10 +6,10 @@ import mysql_connector
 
 des="""eco image db connection and CRUD tester"""
 parser = argparse.ArgumentParser(description=des,formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument('-h', '--host',type=str, help='host name\t[None]')
-parser.add_argument('-p', '--port',type=int,help='port number\t[None]')
-parser.add_argument('-d', '--db',type=str,help='db schema name\t[None]')
-parser.add_argument('-t','--table',type=str,help='table name\t[None]')
+parser.add_argument('--host',type=str, help='host name\t[None]')
+parser.add_argument('--port',type=int,help='port number\t[None]')
+parser.add_argument('--db',type=str,help='db schema name\t[None]')
+parser.add_argument('--table',type=str,help='table name\t[None]')
 args = parser.parse_args()
 
 if not args.host is None:
