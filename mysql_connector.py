@@ -48,7 +48,7 @@ class MYSQL:
             self.uid = sys.stdin.readline().replace('\n', '')
             self.pwd = getpass.getpass(prompt='pwd: ', stream=None)  # was stream=sys.sdin
         try:  # connection start
-            conn = msc.connect(host=self.srv, port=str(self.port), database=self.db, user=self.uid, password=self.pwd)
+            conn = msc.connect(host=self.host, port=str(self.port), database=self.db, user=self.uid, password=self.pwd)
         except RuntimeError:
             print('start():ER3.ODBC')
             self.errors += 'start():ER3.ODBC' + '\n'
