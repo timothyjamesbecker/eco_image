@@ -8,7 +8,7 @@ import mysql.connector as msc  # pyodbc not easy to configure on mac, pypyodbc n
 
 class MYSQL:
     # constructor
-    def __init__(self, host, db, port=3306,uid=False, pwd=False):
+    def __init__(self,host,db,port=3306,uid=False,pwd=False):
         # The MSSQL variables for injection safe connection strings
         self.host = host  # MYSQL server hostname to connect to
         self.port = str(port)
