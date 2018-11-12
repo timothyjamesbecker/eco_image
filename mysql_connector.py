@@ -11,14 +11,14 @@ class MYSQL:
     def __init__(self, host, db, port=3306,uid=False, pwd=False):
         # The MSSQL variables for injection safe connection strings
         self.host = host  # MYSQL server hostname to connect to
-        self.port = port
+        self.port = str(port)
         self.db = db  # db name
         self.uid = uid
         self.pwd = pwd
         self.errors = ''
-        self.conn = self.start()  # keeps the connection object
         self.SQL = []  # list of Qs
         self.V = []  # list of values for SQL
+        self.start()
 
     def __enter__(self):
         return self
@@ -42,13 +42,14 @@ class MYSQL:
             pass
 
     def start(self):
-        conn = None
+        self.conn = None
         if (not self.uid) and (not self.pwd):
             print('uid: '),
             self.uid = sys.stdin.readline().replace('\n','')
             self.pwd = getpass.getpass(prompt='pwd: ',stream=None).replace('\n','')  # was stream=sys.sdin
         try:  # connection start
-            conn = msc.connect(host=self.host,port=str(self.port),database=self.db,user=self.uid,password=self.pwd)
+            self.conn = msc.connect(host=self.host,port=str(self.port),
+                                    database=self.db,user=self.uid,password=self.pwd)
         except RuntimeError:
             print('start():ER3.ODBC')
             self.errors += 'start():ER3.ODBC' + '\n'
@@ -60,7 +61,6 @@ class MYSQL:
             self.errors += 'start():ER5.Unknown_Error: {}'.format(err)+'\n'
             print(self.host,self.port,self.db,self.uid,self.pwd)
             pass
-        return conn
 
     def query(self, sql, v=[], r=False):
         res = {}
