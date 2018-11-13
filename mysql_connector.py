@@ -60,7 +60,7 @@ class MYSQL:
             self.errors += 'start():ER5.Unknown_Error: {}'.format(err)+'\n'
             pass
 
-    def query(self, sql, v=[], r=False):
+    def query(self, sql, v={}, r=False):
         res = {}
         try:  # execute one sql and v list
             if r:

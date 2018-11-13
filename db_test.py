@@ -45,7 +45,7 @@ with msc.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd) as dbo:
     D =  """truncate table %s;"""%tbl
     Q = [R]
     for q in Q:
-        res = dbo.query(q.replace(' ','').replace('\n',''),[],r=True)
+        res = dbo.query(q.replace(' ','').replace('\n',''),r=True)
         print(res)
 #--------------------------------------------------------------------------------------------------------------------
 
