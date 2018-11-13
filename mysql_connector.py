@@ -65,15 +65,15 @@ class MYSQL:
         try:  # execute one sql and v list
             if r:
                 cursor = self.conn.cursor(dictionary=True)
-                if sql.find(';')<=1: cursor.execute(sql,v)
-                else:                cursor.execute(sql,v,multi=True)
+                if sql.count(';')<=1: cursor.execute(sql,v)
+                else:                 cursor.execute(sql,v,multi=True)
                 # for row in cursor: res.append(row)
                 res = cursor.fetchall()
                 cursor.close()
             else:  # this could be an insert command
                 cursor = self.conn.cursor()
-                if sql.find(';')<=1: cursor.execute(sql,v)
-                else:                cursor.execute(sql,v,multi=True)
+                if sql.count(';')<=1: cursor.execute(sql,v)
+                else:                 cursor.execute(sql,v,multi=True)
                 cursor.close()
             self.conn.commit()
         except msc.errors.ProgrammingError as err:
