@@ -58,7 +58,6 @@ class MYSQL:
         except Exception as err:
             print('start():ER5.Unknown_Error: {}'.format(err))
             self.errors += 'start():ER5.Unknown_Error: {}'.format(err)+'\n'
-            print(self.host,self.port,self.db,self.uid,self.pwd)
             pass
 
     def query(self, sql, v=[], r=False):
@@ -66,13 +65,15 @@ class MYSQL:
         try:  # execute one sql and v list
             if r:
                 cursor = self.conn.cursor(dictionary=True)
-                cursor.execute(sql, v)
+                if sql.find(';')<=1: cursor.execute(sql,v)
+                else:                cursor.execute(sql,v,many=True)
                 # for row in cursor: res.append(row)
                 res = cursor.fetchall()
                 cursor.close()
             else:  # this could be an insert command
                 cursor = self.conn.cursor()
-                cursor.execute(sql, v)
+                if sql.find(';')<=1: cursor.execute(sql,v)
+                else:                cursor.execute(sql,v,many=True)
                 cursor.close()
             self.conn.commit()
         except msc.errors.ProgrammingError as err:
