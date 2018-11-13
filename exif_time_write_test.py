@@ -39,7 +39,8 @@ def is_in_dst(t,T):
     else:
         return False          
 
-path = '/Users/tbecker/Documents/Projects/GitHubProjects/eco_image/data/camera_examples/M-999i/14523_BurtonBrook_062018_072418 (799).JPG'
+path = '/Users/tbecker/Documents/Projects/GitHubProjects/eco_image/data/'+\
+       'camera_examples/14523_BurtonBrook_051018_062018/14523_BurtonBrook_051018_062018 (13).JPG'
 
 E = piexif.load(path)
 t1 = E['0th'][306]
@@ -47,6 +48,11 @@ t1 = E['0th'][306]
 e1 = E['Exif'][36867]
 e2 = E['Exif'][36868]
 
+fpath = os.path.dirname(path)
+sdep = datetime.datetime.strptime(fpath[-13:-7],'%m%d%y')
+
+if is_in_dst(sdep,T):
+    update_exif_date_time_hours(path,tag='0th',byte=306,offset=-1)
 
 #read raw text
 with open('/Users/tbecker/Desktop/data_test.tsv','r') as f: raw = f.readlines()
@@ -60,4 +66,4 @@ for i in range(len(raw)):
     else:
         data += [raw[i].replace('\n','').split('\t')]
         
-        
+    
