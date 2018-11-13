@@ -65,8 +65,8 @@ class MYSQL:
         try:  # execute one sql and v list
             if r:
                 cursor = self.conn.cursor(dictionary=True)
-                if sql.find(';')<=1: res = cursor.execute(sql,v)
-                else:                res = cursor.execute(sql,v,multi=True)
+                if sql.find(';')<=1: cursor.execute(sql,v)
+                else:                cursor.execute(sql,v,multi=True)
                 # for row in cursor: res.append(row)
                 res = cursor.fetchall()
                 cursor.close()

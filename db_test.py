@@ -45,7 +45,7 @@ with msc.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd) as dbo:
             insert into %s values(21,"To Test",41.273652,72.162534);"""%(tbl,tbl)
 
     D =  """truncate table %s;"""%tbl
-    Q = [C,R,U,D]
+    Q = [R,D,R,C,U,R]
     for q in Q:
         res = dbo.query(q,[],r=True)
         print(res)
