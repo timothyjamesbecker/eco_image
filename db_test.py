@@ -39,7 +39,7 @@ if os.path.exists(local_path+'/flow.cfg'):
 with msc.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd) as dbo:
     C = """drop table if exists %s;
            create table %s(pk int primary key not null, description text, lat float(10), lon float(10));"""%(tbl,tbl)
-    R = """select * from %s.%s;"""%(db,tbl)
+    R = """select * from %s;"""%(tbl)
     U =  """insert into %s values(13,"Needed",41.234526,-71.425362);
             insert into %s values(21,"To Test",41.273652,72.162534);"""%(tbl,tbl)
     D =  """truncate table %s;"""%tbl
