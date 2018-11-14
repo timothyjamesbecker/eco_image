@@ -2,9 +2,10 @@
 import os
 import time
 import argparse
-import mysql_connector as mysql
+import random
+import mysql_connector as mysql #uses mysql.connector 8.13+
 
-des="""eco image db connection and CRUD tester"""
+des="""db connection and CRUD tester"""
 parser = argparse.ArgumentParser(description=des,formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('--host',type=str, help='host name\t[None]')
 parser.add_argument('--port',type=int,help='port number\t[None]')
@@ -30,31 +31,25 @@ else:
     tbl = 'test'
 uid,pwd=False,False
 local_path = os.path.dirname(os.path.abspath(__file__))
-if os.path.exists(local_path+'/flow.cfg'):
-    with open(local_path+'/flow.cfg','r') as f:
+if os.path.exists(local_path+'/test.cfg'):
+    with open(local_path+'/test.cfg','r') as f:
         raw = f.readlines()
         uid = raw[0].replace('\n','')
         pwd = raw[1].replace('\n','')
-#wrapper library testing--------------------------------------------------------------------------------------------
-with mysql.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd) as dbo:
-    C = """drop table if exists %s;
-           create table %s(pk int primary key not null, description text, lat float(10), lon float(10));"""%(tbl,tbl)
-    R = """select * from %s;"""%(tbl)
-    U =  """insert into %s values(13,"Needed",41.234526,-71.425362);
-            insert into %s values(21,"To Test",41.273652,72.162534);"""%(tbl,tbl)
-    D =  """truncate table %s;"""%tbl
-    Q = [R]
-    for q in Q:
-        res = dbo.query(q,r=True)
-        print(res)
-#--------------------------------------------------------------------------------------------------------------------
 
-#manual connector testing
-# conn = msc.connect(host=unicode(host),port=unicode(port),database=unicode(db),user=unicode(uid),password=unicode(pwd))
-# cursor = conn.cursor(dictionary=True)
-# cursor.execute(sql,v)
-# # for row in cursor: res.append(row)
-# res = cursor.fetchall()
-# cursor.close()
-# conn.close()
-# print(res)
+#random lat,lon generator with 6 decimal places
+def get_pos():
+    return round(random.randint(-180,180)+random.random(),6)
+
+#manual connector testing v is an injection safe value list, ? are the positional holders for values
+QS = [{'sql':'select * from %s.%s;'%(db,tbl)},
+      {'sql':'drop table if exists %s.%s;'%(db,tbl)},
+      {'sql':'create table %s.%s(pk int primary key, des text, lat float(10), lon float(10));'%(db,tbl)},
+      {'sql':'insert into %s.%s value (?,?,?,?),(?,?,?,?);'%(db,tbl),
+       'v':[random.randint(0,10),'Hello',get_pos(),get_pos(),random.randint(10,20),'Goodbye',get_pos(),get_pos()]},
+      {'sql':'select * from %s.%s'%(db,tbl)}]
+
+with mysql.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd) as dbo:
+    dbo.set_SQL_V(QS)
+    res = dbo.run_SQL_V()
+    print(res)
