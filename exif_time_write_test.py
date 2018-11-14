@@ -37,10 +37,23 @@ def is_in_dst(t,T):
     if t >= T[0] and t <= T[1]:
         return True
     else:
-        return False          
+        return False     
 
-path = '/Users/tbecker/Documents/Projects/GitHubProjects/eco_image/data/'+\
-       'camera_examples/14523_BurtonBrook_051018_062018/14523_BurtonBrook_051018_062018 (13).JPG'
+     
+
+path = 'P:/Projects/GitHub_Prj/eco_image/data/image_test/'+\
+       '15244_CobbleBrook_091918_103118/15244_CobbleBrook_091918_103118 (1).JPG'
+       
+imagedir = 'P:/Projects/GitHub_Prj/eco_image/data/image_test/'
+fpath = os.listdir(imagedir)
+path = os.path.join(imagedir,'15244_CobbleBrook_091918_103118/15244_CobbleBrook_091918_103118 (1).JPG')
+
+for i in range (len(fpath)):
+    if fpath != 'Thumbs.db':
+        pathls = os.listdir(fpath[i])
+        for j in range (len(pathls)):
+            if
+        path=os
 
 E = piexif.load(path)
 t1 = E['0th'][306]
