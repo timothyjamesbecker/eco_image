@@ -2,7 +2,7 @@
 import os
 import time
 import argparse
-import mysql_connector as msc
+import mysql_connector as mysql
 
 des="""eco image db connection and CRUD tester"""
 parser = argparse.ArgumentParser(description=des,formatter_class=argparse.RawTextHelpFormatter)
@@ -36,7 +36,7 @@ if os.path.exists(local_path+'/flow.cfg'):
         uid = raw[0].replace('\n','')
         pwd = raw[1].replace('\n','')
 #wrapper library testing--------------------------------------------------------------------------------------------
-with msc.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd) as dbo:
+with mysql.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd) as dbo:
     C = """drop table if exists %s;
            create table %s(pk int primary key not null, description text, lat float(10), lon float(10));"""%(tbl,tbl)
     R = """select * from %s;"""%(tbl)
