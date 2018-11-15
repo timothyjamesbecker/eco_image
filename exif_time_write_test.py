@@ -39,29 +39,38 @@ def is_in_dst(t,T):
     else:
         return False     
 
-     
+#Files and folders to use for test 
+imagedir = '/Users/tbecker/Documents/Projects/GitHubProjects/eco_image/'+\
+            'data/image_test'
+fpathdir = os.listdir(imagedir)
+fpath = os.path.join(imagedir, fpathdir[2])
+path = os.path.join(fpath,os.listdir(os.path.join(imagedir,fpath))[0])
 
-path = 'P:/Projects/GitHub_Prj/eco_image/data/image_test/'+\
-       '15244_CobbleBrook_091918_103118/15244_CobbleBrook_091918_103118 (1).JPG'
-       
-imagedir = 'P:/Projects/GitHub_Prj/eco_image/data/image_test/'
-fpath = os.listdir(imagedir)
-path = os.path.join(imagedir,'15244_CobbleBrook_091918_103118/15244_CobbleBrook_091918_103118 (1).JPG')
+origtime = []
+for i in range (len(os.listdir(fpath))):
+    path = os.path.join(fpath,os.listdir(os.path.join(imagedir,fpath))[i])
+    E = piexif.load(path)
+    t = E['0th'][306]
+    origtime.append (parse_exif_date_time(t))
 
-for i in range (len(fpath)):
-    if fpath != 'Thumbs.db':
-        pathls = os.listdir(fpath[i])
-        for j in range (len(pathls)):
-            if
-        path=os
+for i in range (len(os.listdir(fpath))):
+    path = os.path.join(fpath,os.listdir(os.path.join(imagedir,fpath))[i])
+    update_exif_date_time_hours(path,tag='0th',byte=306,offset=-1)
+
+ESTtime = []
+for i in range (len(os.listdir(fpath))):
+    path = os.path.join(fpath,os.listdir(os.path.join(imagedir,fpath))[i])
+    E = piexif.load(path)
+    t = E['0th'][306]
+    ESTtime.append (parse_exif_date_time(t))
 
 E = piexif.load(path)
 t1 = E['0th'][306]
 
-e1 = E['Exif'][36867]
-e2 = E['Exif'][36868]
+#Alternate date time stamps.  Check to make sure using consistent timedate stamp
+#e1 = E['Exif'][36867] 
+#e2 = E['Exif'][36868]
 
-fpath = os.path.dirname(path)
 sdep = datetime.datetime.strptime(fpath[-13:-7],'%m%d%y')
 
 if is_in_dst(sdep,T):
