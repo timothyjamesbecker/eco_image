@@ -43,38 +43,47 @@ def is_in_dst(t,T):
 imagedir = '/Users/tbecker/Documents/Projects/GitHubProjects/eco_image/'+\
             'data/image_test'
 fpathdir = os.listdir(imagedir)
-fpath = os.path.join(imagedir, fpathdir[2])
+
+#Single Paths for testing
+fpath = os.path.join(imagedir, fpathdir[3])
 path = os.path.join(fpath,os.listdir(os.path.join(imagedir,fpath))[0])
-
-origtime = []
-for i in range (len(os.listdir(fpath))):
-    path = os.path.join(fpath,os.listdir(os.path.join(imagedir,fpath))[i])
-    E = piexif.load(path)
-    t = E['0th'][306]
-    origtime.append (parse_exif_date_time(t))
-
-for i in range (len(os.listdir(fpath))):
-    path = os.path.join(fpath,os.listdir(os.path.join(imagedir,fpath))[i])
-    update_exif_date_time_hours(path,tag='0th',byte=306,offset=-1)
-
-ESTtime = []
-for i in range (len(os.listdir(fpath))):
-    path = os.path.join(fpath,os.listdir(os.path.join(imagedir,fpath))[i])
-    E = piexif.load(path)
-    t = E['0th'][306]
-    ESTtime.append (parse_exif_date_time(t))
-
 E = piexif.load(path)
 t1 = E['0th'][306]
-
 #Alternate date time stamps.  Check to make sure using consistent timedate stamp
 #e1 = E['Exif'][36867] 
 #e2 = E['Exif'][36868]
 
-sdep = datetime.datetime.strptime(fpath[-13:-7],'%m%d%y')
+#Identify folders that contain images with time in DST using deploy date
+#Change DST to EST for all files in a folder
+for i in range (len(fpathdir)):
+    fpath = os.path.join(imagedir, fpathdir[i])
+    if os.path.isdir(fpath):
+        sdep = datetime.datetime.strptime(fpath[-13:-7],'%m%d%y')
+        T = get_dst_change_points(sdep.year)
+    if is_in_dst(sdep,T):
+        for i in range (len(os.listdir(fpath))):
+            path = os.path.join(fpath,os.listdir(os.path.join(imagedir,fpath))[i])
+            update_exif_date_time_hours(path,tag='0th',byte=306,offset=-1)
 
-if is_in_dst(sdep,T):
-    update_exif_date_time_hours(path,tag='0th',byte=306,offset=-1)
+#For TESTing purpose orig time in est out
+n = 1
+origtime1 = []
+fpath = os.path.join(imagedir, fpathdir[n])
+for i in range (len(os.listdir(fpath))):
+    path = os.path.join(fpath,os.listdir(fpath)[i])
+    E = piexif.load(path)
+    t = E['0th'][306]
+    origtime1 += [parse_exif_date_time(t)]
+
+
+n = 1
+EST1 = []
+fpath = os.path.join(imagedir, fpathdir[n])
+for i in range (len(os.listdir(fpath))):
+    path = os.path.join(fpath,os.listdir(fpath)[i])
+    E = piexif.load(path)
+    t = E['0th'][306]
+    EST1 += [parse_exif_date_time(t)]
 
 #read raw text
 with open('/Users/tbecker/Desktop/data_test.tsv','r') as f: raw = f.readlines()
