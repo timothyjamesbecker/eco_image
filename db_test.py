@@ -53,7 +53,7 @@ if __name__ == '__main__':
           {'sql':'select * from %s.%s'%(db,tbl)}]
 
     if args.wrapper:
-        with mysql.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd) as dbo:
+        with mysql.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd,delim='?') as dbo:
             dbo.set_SQL_V(QS)
             res = dbo.run_SQL_V()
             print(res)

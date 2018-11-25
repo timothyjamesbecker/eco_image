@@ -6,13 +6,14 @@ import getpass
 import mysql.connector as msc  # pyodbc not easy to configure on mac, pypyodbc not encoding/decoding
 
 class MYSQL:
-    def __init__(self,host,db,port=3306,uid=False,pwd=False): # constructor
+    def __init__(self,host,db,port=3306,delim='?',uid=False,pwd=False): # constructor
         # The MSSQL variables for injection safe connection strings
         self.host   = host  # MYSQL server hostname to connect to
         self.port   = port
         self.db     = db  # db name
         self.uid    = uid
         self.pwd    = pwd
+        self.delim  = delim
         self.errors = ''
         self.SQL    = []
         self.V      = []
@@ -58,7 +59,7 @@ class MYSQL:
     def set_SQL_V(self,QS):
         for q in QS:
             if q.has_key('sql'):
-                self.SQL += [q['sql'].replace('?','%s')]
+                self.SQL += [q['sql'].replace(self.delim,'%s')]
                 if q.has_key('v'): self.V += [tuple(q['v'])]
                 else:              self.V += [()]
         if len(self.SQL) != len(self.V):
@@ -92,7 +93,7 @@ class MYSQL:
         res = {}
         try:  # execute one sql and v
             cursor = self.conn.cursor(dictionary=True)
-            cursor.execute(sql,v)
+            cursor.execute(sql.replace(self.delim,'%s'),tuple(v))
             if cursor.with_rows: res = cursor.fetchall()
             cursor.close()
             self.conn.commit()
