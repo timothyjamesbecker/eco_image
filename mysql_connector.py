@@ -6,17 +6,19 @@ import getpass
 import mysql.connector as msc  # pyodbc not easy to configure on mac, pypyodbc not encoding/decoding
 
 class MYSQL:
-    def __init__(self,host,db,port=3306,delim='?',uid=False,pwd=False): # constructor
+    def __init__(self,host,db,port=3306,charset=['utf8','utf8_general_ci'],
+                 delim='?',uid=False,pwd=False): # constructor
         # The MSSQL variables for injection safe connection strings
-        self.host   = host  # MYSQL server hostname to connect to
-        self.port   = port
-        self.db     = db  # db name
-        self.uid    = uid
-        self.pwd    = pwd
-        self.delim  = delim
-        self.errors = ''
-        self.SQL    = []
-        self.V      = []
+        self.host    = host  # MYSQL server hostname to connect to
+        self.db      = db  # db name
+        self.port    = port
+        self.charset = charset
+        self.uid     = uid
+        self.pwd     = pwd
+        self.delim   = delim
+        self.errors  = ''
+        self.SQL     = []
+        self.V       = []
         self.start()
 
     def __enter__(self):
@@ -42,6 +44,7 @@ class MYSQL:
             self.pwd = getpass.getpass(prompt='pwd: ',stream=None).replace('\n','')  # was stream=sys.sdin
         try:  # connection start
             self.conn = msc.connect(host=self.host,database=self.db,port=self.port,user=self.uid,password=self.pwd)
+            self.conn.set_charset_collation(self.charset[0],self.charset[1])
         except RuntimeError:
             print('start():ER3.ODBC')
             self.errors += 'start():ER3.ODBC' + '\n'
