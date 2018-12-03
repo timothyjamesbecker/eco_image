@@ -55,7 +55,7 @@ if __name__ == '__main__':
           {'sql':'select * from %s.%s'%(db,tbl)}]
     SD,RD = [],[]
     if args.select_query is not None:
-        SD += [{'sql':'select * from %s.%s'%(db,'user')}]
+        SD += [{'sql':args.select_query}]
     if args.verbose: print(QS)
     if args.verbose: print(SD)
     if args.wrapper:
