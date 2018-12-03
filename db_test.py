@@ -68,6 +68,7 @@ if __name__ == '__main__':
         with mysql.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd,delim='?') as dbo:
             dbo.set_SQL_V(SD)
             RD += [dbo.run_SQL_V()]
+            print(RD)
     else:
 
         res = []
@@ -93,4 +94,5 @@ if __name__ == '__main__':
             if cursor.with_rows: RD += [cursor.fetchall()]
             cursor.close()
         conn.commit()
+        print(RD)
 
