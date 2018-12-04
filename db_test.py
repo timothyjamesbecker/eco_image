@@ -13,18 +13,17 @@ parser.add_argument('--port',type=int,help='port number\t[None]')
 parser.add_argument('--db',type=str,help='db schema name\t[None]')
 parser.add_argument('--table',type=str,help='table name\t[None]')
 parser.add_argument('--select_query',type=str,help='mysql raw select query\t[None]')
-parser.add_argument('--wrapper',action='store_true',help='use the mysql_connector.MYSQL class\t[False]')
 parser.add_argument('--verbose',action='store_true',help='print everything to stdout\t[False]')
 args = parser.parse_args()
 
 if not args.host is None:
     host = args.host
 else:
-    raise AttributeError
+    host = '127.0.0.1'
 if not args.port is None:
     port = args.port
 else:
-    raise AttributeError
+    port = 3306
 if not args.db is None:
     db = args.db
 else:
@@ -58,41 +57,12 @@ if __name__ == '__main__':
         SD += [{'sql':args.select_query}]
     if args.verbose: print(QS)
     if args.verbose: print(SD)
-    if args.wrapper:
-
-        with mysql.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd,delim='?') as dbo:
-            dbo.set_SQL_V(QS)
-            res = dbo.run_SQL_V()
-            print(res)
-
-        with mysql.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd,delim='?') as dbo:
+    with mysql.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd,delim='?',ssh_tunnel=True) as dbo:
+        dbo.set_SQL_V(QS)
+        RD = dbo.run_SQL_V()
+    print(RD)
+    if SD != []:
+        with mysql.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd,delim='?',ssh_tunnel=True) as dbo:
             dbo.set_SQL_V(SD)
-            RD += [dbo.run_SQL_V()]
-            print(RD)
-    else:
-
-        res = []
-        conn = msc.connect(host=host,database=db,port=port,user=uid,password=pwd)
-        conn.set_charset_collation('utf8','utf8_general_ci')
-        for i in range(len(QS)):
-            sql,v = QS[i]['sql'].replace('?','%s'),()
-            if QS[i].has_key('v'): v = tuple(QS[i]['v'])
-            cursor = conn.cursor(dictionary=True)
-            cursor.execute(sql,v)
-            if cursor.with_rows: res += [cursor.fetchall()]
-            cursor.close()
-        conn.commit()
-        print(res)
-
-        conn = msc.connect(host=host,database=db,port=port,user=uid,password=pwd)
-        conn.set_charset_collation('utf8','utf8_general_ci')
-        for i in range(len(SD)):
-            sql,v = SD[i]['sql'].replace('?','%s'),()
-            if SD[i].has_key('v'): v = tuple(SD[i]['v'])
-            cursor = conn.cursor(dictionary=True)
-            cursor.execute(sql,v)
-            if cursor.with_rows: RD += [cursor.fetchall()]
-            cursor.close()
-        conn.commit()
+            RD = dbo.run_SQL_V()
         print(RD)
-

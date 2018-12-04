@@ -2,6 +2,8 @@ import os
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import sshtunnel
+import mysql_connector as msc
 
 #some segmentation experiments
 local_path = os.path.dirname(os.path.abspath(__file__))
@@ -26,3 +28,5 @@ for rho,theta in lines[0]:
 cv2.circle(img,(img.shape[0]/2,img.shape[1]/2),100,(0,0,255),20)
 plt.imshow(cv2.cvtColor(img,cv2.COLOR_BGR2RGB))
 plt.show()
+
+#some db experiements
