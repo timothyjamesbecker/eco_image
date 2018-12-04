@@ -1,0 +1,40 @@
+Camera Model,Serial Number,Camera Number,Date Received,Location as of 9/20/18,StillInUse,Comments
+Missing Camera ID,0,0,,,0,
+Moultrie M 550,127171000000000,1,7/1/2016,Field,1,# estimated date receieved
+Moultrie M 550,127172000000000,2,7/1/2016,Stolen,0,Camera Stolen While Deployed
+Moultrie M 550,127171000000000,3,7/1/2016,Field,1,
+Moultrie M 550,127171000000000,4,7/1/2016,Field,1,
+Moultrie M 550,127171000000000,5,7/1/2016,Field,1,
+Moultrie M 880,130672000000000,6,5/24/2017,Returned to Moultrie under warranty 7/19/2018,0,"Had battery issues on 6/2/17-11/22/17 deployment (1st deployment), and 5/23/18-7/11/18 deployment (3rd deployment). Camera will not turn on 7/12/18"
+Moultrie M 880,130672000000000,7,5/24/2017,Returned to Moultrie under warranty 6/28/2018,0,Had battery issues on 6/2/17-11/22/17 deployment (1st deployment). Had issues 2nd deployment Comstock Bk -ran batteries dead after 14 days. Firmware upgrade 6/19/18 from M888 160303 to 160810.
+Moultrie M 880,130672000000000,8,5/24/2017,Field,1,Timelapse settings malfunctioned on 6/2/17-11/22/17 deployment (1st deployment)
+Moultrie M 880,130672000000000,9,5/24/2017,Returned to Moultrie under warranty,0,Had battery issues on 12/28/17-4/2/18 deployment (3rd deployment). Was deployed at Bunnell Brook and stopped working. Moultrie sent a replacement camera which is #30
+Moultrie M 880,130672000000000,10,5/24/2017,Returned to Moultrie under warranty 6/28/2018,0,Had battery issues on 5/17/18-6/20/18 deployment (3rd deployment). Upgraded firmware on 6/21/18- was M888 (160330) updated to M888 (160810)
+Moultrie M 880,130672000000000,11,5/24/2017,Field,1,
+Moultrie M 880,130672000000000,12,5/24/2017,Field,1,Had battery issues on 6/2/17-11/28/17 deployment (1st deployment)
+Moultrie M 880,130672000000000,13,5/24/2017,Field,1,"Had battery issues on 6/30/17-11/3/17 deployment (1st deployment), and 4/19/18-5/17/18 deployment (3rd deployment). Firmware upgrade to M-888 (160810) successful on 5/21/18, tested in lab from 5/21/18 to 5/31/18. Took hourly pictures entire time of test period."
+Moultrie M 880,130672000000000,14,5/24/2017,Returned to Moultrie under warranty 5/25/2018,0,Had battery issues on 4/19/18-5/17/18 deployment (2nd deployment)
+Moultrie M 880,130672000000000,15,5/24/2017,Field,1,
+Moultrie M 880,130672000000000,16,5/24/2017,Field,1,
+Moultrie M 880,130672000000000,17,5/24/2017,Field,1,
+Moultrie M 880,130672000000000,18,5/24/2017,Returned to Moultrie under warranty 5/25/2018,0,"Had battery issues on 12/28/17-4/2/18 deployment (1st deployment), and 4/2/18-5/10/18 deployment (2nd deployment), and 5-10 to 5-18 (3rd deployment)"
+Moultrie M 880,130672000000000,19,5/24/2017,Returned to Moultrie under warranty 7/19/2018,0,"Had battery issues on 12/28/17-4/2/18 deployment (1st deployment), and 5/23/18-7/11/18 deployment (3rd deployment). Camera will not turn on 7/12/18"
+Moultrie M 880,130672000000000,20,5/24/2017,Field,1,
+Moultrie M 880,130672000000000,21,5/24/2017,Field,1,Had battery issues on 1/3/18-3/22/18 deployment (1st deployment)
+Moultrie M 999i,130352000000000,22,3/16/2018,Field,1,
+Moultrie M 999i,130352000000000,23,3/16/2018,Field,1,
+Moultrie M 999,130352000000000,24,3/16/2018,Returned to Moultrie under Warranty 7/30/2018,0,"Had battery issues on 4/2/18-5/17/18 deployment (1st deplooyment). Firmware upgrade to M-999i (160503) successful on 5/21/18, tested in lab from 5/21/18 to 5/31/18.  Took hourly pictures entire time of test period. Had battery issues on 6/8/18-7/18/18 deployment (2nd deployment). Firmware is already up-to-date (160503). Upgraded firmware again from 7/19/18 to 7/30/18, but camera failed on 7/25/18. Took hourly pictures entire time of test period. "
+Moultrie M 999,130352000000000,25,3/16/2018,Field,1,Camera doesn't save time/date correctly in metadata
+Moultrie M 999,130352000000000,26,3/16/2018,Field,1,
+Moultrie M 999,130352000000000,27,3/16/2018,Field,1,
+Moultrie M 999,130352000000000,28,3/16/2018,Field,1,Upgrade firmware 5/30/18 M-999i (160503).
+Spypoint Force,1G703-00741,29,3/16/2018,Field,1,Serial Number inside battery case
+Moultrie M 880,130672000000000,30,4/17/2018,Field,1,"Had battery issues on 5/8/18 to 7/3/18 deployment (1st deployment). Firmware upgrade to M-888 (160810) successful on 7/5/18, tested in lab from 7/5/18 to 7/11/18. Took hourly pictures entire time of test period."
+Moultrie M 40,131812000000000,31,6/5/2018,Returned to Moultrie under Warranty 8/31/2018,0,"Replacement from Moultrie for #14. Upgraded firmware 6/6/18 M-40 (170808) was 170127. Tested from 6/6 to 6/19 OK. Water got inside button chamber, buttons did not work while wet."
+Moultrie M 40,131812000000000,32,6/5/2018,Returned to Moultrie under Warranty 8/31/2018,0,"Replacement from Moultrie for #18. Upgraded firmware 6/6/18 M-40 (170808) was 170127. Tested from 6/6 to 6/19 OK. Water got inside button chamber, buttons did not work while wet."
+Moultrie M 880,130672000000000,33,7/17/2018,Field,1,Replacement from Moultrie for #7. Upgrade firmware 7/17/2018 from 151217 to  M-888 (160810).
+Moultrie M 880,130672000000000,34,7/17/2018,Field,1,Replacement from Moultrie for #10. Upgrade firmware 7/17/2018 from 151217 to  M-888 (160810).
+Moultrie M 880,130672000000000,35,8/1/2018,Field,1,Replacement from Moultrie for #6. Upgrade firmware 8/6/2018 from 160330 to  M-888 (160810).
+Moultrie M 880,130672000000000,36,8/1/2018,Field,1,Replacement from Moultrie for #19. Upgrade firmware 8/6/2018 from 160330 to  M-888 (160810).
+Moultrie S-50i,131832000000000,37,8/14/2018,Field,1,Replacement from Moultrie for #24. Upgrade firmware 8/14/2018 from 161221 to  S-50i (170808). Takes 12 AA bateries instead of 8
+Bushnell,,38,,Field,1,Older camera.  Uses older exif data format.

@@ -1,0 +1,161 @@
+Flag,Camera Number,STA_SEQ,US/DS,Deploy Start Date,Deploy End Date,Picture End Date,Battery Brand,Battery Type,Start Battery Amp,End Battery Amp,Infostrip,Motion Detect,Quality Setting,Time Lapse Settings,Memory Used (GB),USGS Gage,Comments
+1,0,14523,,8/3/2016,8/24/2016,,Rayovac,Alkaline,1.59,1.50,Off,Yes,Medium,"9 am, 4 pm",,No,Not assigned to a particular camera id.
+0,1,19097,,8/24/2016,9/21/2016,9/21/2016,Energizer,Alkaline,1.59,1.52,On,Yes,,"10 am, 10:30 am ,4 pm, 4:30 pm",,No,
+0,2,15013,,9/7/2016,10/7/2016,10/7/2016,Energizer,Alkaline,1.59,1.52,On,Yes,Enhanced,"9 am, 3 pm",,Yes,
+0,3,15091,,8/15/2016,11/3/2016,11/3/2016,Energizer,Alkaline,1.59,1.47,On,Yes,,"10 am, 10:30 am, 4 pm, 4:30 pm",,Yes,
+0,4,16047,,8/19/2016,12/10/2016,12/10/2016,Energizer,Alkaline,1.59,1.46,On,No,Enhanced,"10 am, 10:30 am, 4 pm, 4:30 pm",,No,
+0,5,16046,,8/19/2016,12/10/2016,12/10/2016,Energizer,Alkaline,1.59,1.45,On,Yes,Enhanced,"10 am, 10:30 am, 4 pm, 4:30 pm",,No,
+0,2,19054,,11/4/2016,5/5/2017,5/5/2017,Energizer,Alkaline,1.59,1.44,On,Yes,Enhanced,"9 am, 3 pm",,No,
+0,4,15244,,4/28/2017,11/15/2017,11/15/2017,Energizer,Alkaline,1.58,1.43,On,Yes,Enhanced,"9 am, 3 pm",,No,
+0,5,19460,,4/28/2017,11/15/2017,11/15/2017,Energizer,Alkaline,1.58,1.44,On,Yes,Enhanced,"9 am, 3 pm",,No,
+0,1,18513,,4/28/2017,11/15/2017,11/15/2017,Energizer,Alkaline,1.57,1.42,On,Yes,Enhanced,"9 am, 3 pm",,No,
+0,3,19657,,5/4/2017,7/7/2017,7/7/2017,Energizer,Alkaline,,,On,Yes,Enhanced,"9 am, 3 pm* Changed to hourly on 5/26/2017",,Yes,
+1,2,19711,,5/26/2017,,,Energizer,Alkaline,,,On,Yes,Enhanced,"9 am, 3 pm",,No,Checked on 11/3/2017. Camera taken. Clear cut across stream.
+0,6,16322,,6/2/2017,11/22/2017,7/12/2017,Energizer,Alkaline,1.60,1.05,On,Yes,Enhanced,"Noon, 4 pm, 5pm",,No,Discolored battery
+1,7,19707,,6/2/2017,11/22/2017,7/1/2017,Energizer,Alkaline,1.60,,On,Yes,Enhanced,"10 am, 4 pm",,No,"Battery issue- Volts read -0.28, 0.80, 0.0, 0.59, -0.28, 0.80, -0.27, -0.28 - One discolored battery"
+0,8,19708,,6/2/2017,11/22/2017,11/22/2017,Energizer,Alkaline,1.60,1.42,On,Yes,Enhanced,"9 am, 4 pm",,No,"The timelapse settings on this trail camera malfunctioned after June 5, 2017. Pictures were still taken after that date, but not on the designated timelapse setting, and there were some days in which pictures weren’t taken at all. Test before redployment."
+0,9,19709,,6/2/2017,11/3/2017,10/30/2017,Energizer,Alkaline,1.60,1.15,On,Yes,Enhanced,"9 am, 4 pm",,No,
+0,10,15193,,6/2/2017,11/28/2017,11/28/2017,Energizer,Alkaline,1.60,1.10,On,Yes,Enhanced,"9 am, 4 pm",4.90,No,Gage Further US
+0,11,15192,,6/2/2017,11/28/2017,11/28/2017,Energizer,Alkaline,1.60,1.34,On,Yes,Enhanced,"10 am, 4 pm",6.70,Yes,
+1,12,19141,,6/2/2017,11/28/2017,10/12/2017,Energizer,Alkaline,1.60,,On,Yes,Enhanced,"9 am, 3 pm",1.00,No,"Battery issue- 7 were 1.42, 1 was 0.35.  Gage Further US."
+1,13,19599,,6/30/2017,11/3/2017,7/4/2017,Energizer,Alkaline,1.60,,On,Yes,Enhanced,"9 am, 3 pm",,No,"Battery issue- Volts read -0.16,-0.07,-0.08,0.23,-0.10,0.47,0.29,0.03-one discolored battery. Stop taking pictures 7/4"
+0,14,19600,,6/30/2017,11/3/2017,11/3/2017,Energizer,Alkaline,1.60,1.45,On,Yes,Enhanced,"9 am, 3 pm",,No,
+0,15,16046,,6/30/2017,11/26/2017,11/26/2017,Energizer,Alkaline,1.60,1.37,On,Yes,Enhanced,"9 am, 3 pm",,No,
+0,16,19661,,6/30/2017,11/22/2017,11/22/2017,Energizer,Alkaline,1.60,1.46,On,Yes,Enhanced,"9 am, 3 pm",,No,
+0,3,19657,,7/7/2017,10/20/2017,10/20/2017,Energizer,Alkaline,,1.43,On,Yes,Enhanced,Hourly ,,Yes,
+0,17,18536,,8/11/2017,11/28/2017,11/28/2017,Energizer,Alkaline,,1.44,On,Yes,Enhanced,"9 am, 3 pm",0.80,No,
+0,3,19657,,10/20/2017,11/22/2017,11/22/2017,Duracell,Alkaline,1.60,1.50,On,Yes,Enhanced,Hourly ,,Yes,
+0,9,19657,,11/22/2017,12/28/2017,12/28/2017,Energizer,Alkaline,1.59,1.00,On,Yes,Enhanced,"Hourly from 10 am - 2 pm. Multi-shot, 3-triggered",,Yes,Two cameras deployed at same site to test video and alternate settings
+0,13,19657,,11/22/2017,12/28/2017,12/28/2017,Duracell,Alkaline,1.60,1.02,On,Yes,Video - HD,Hourly from 10 am - 2 pm. Video length - 10 seconds,,Yes,Two cameras deployed at same site to test video and alternate settings
+1,9,19657,,12/28/2017,4/2/2018,1/9/2018,Energizer,Lithium,1.73,,On,Yes,Enhanced,"Hourly from 5 am - 9 pm. Multi-shot, 3-triggered",0.30,Yes,"Volts read 0.00, 0.04, 1.56, 0.00, 0.00, 1.49, 0.01, 1.57"
+0,17,16139,,12/28/2017,4/2/2018,4/2/2018,Energizer,Lithium,1.64,1.71,On,Yes,Enhanced,"Hourly from 5 am - 9 pm. Multi-shot, 3-triggered",2.30,No,
+1,18,14434,,12/28/2017,4/2/2018,1/9/2018,Energizer,Lithium,1.61,,On,Yes,Enhanced,"Hourly from 5 am - 9 pm. Multi-shot, 3-triggered",0.50,Yes,"Volts read 0.00, 1.57, 1.56, 0.02, 0.00, 0.00, 1.56, 0.00"
+1,19,15240,,12/28/2017,4/2/2018,12/28/2017,Energizer,Lithium,1.61,,On,Yes,Enhanced,"Hourly from 5 am - 9 pm. Multi-shot, 3-triggered",0.00,Yes,"Volts read 0.04, 0.09, 1.35, 0.39, 1.39, 0.00, 1.22, 0.00"
+0,20,15499,,12/28/2017,4/2/2018,4/1/2018,Energizer,Lithium,1.67,1.70,On,Yes,Enhanced,"Hourly from 5 am - 9 pm. Multi-shot, 3-triggered",2.40,No,
+1,21,15796,,1/3/2018,3/22/2018,2/25/2018,Energizer,Lithium,1.64,,On,Yes,Enhanced,"Hourly from 5 am - 9 pm. Multi-shot, 3-triggered",1.40,Yes,"Volts read 1.42, 0.70, 0.00, 0.00, 0.02, 1.18, 1.28, 1.26"
+0,21,15796,US,3/22/2018,5/23/2018,5/23/2018,Energizer,Lithium,1.53,1.74,On,Yes,Enhanced,"Hourly from 5 am - 9 pm. Multi-shot, 3-triggered",1.50,Yes,
+0,1,18421,DS,3/22/2018,4/11/2018,4/11/2018,Energizer,Lithium,1.73,1.75,On,Yes,Enhanced,"Hourly from 5 am - 9 pm. Multi-shot, 3-triggered",0.30,No,"Pulled for ""opening day"" fishing season and will redeploy"
+0,6,15801,DS,3/22/2018,5/23/2018,5/23/2018,Energizer,Lithium,1.76,1.74,On,Yes,Enhanced,"Hourly from 5 am - 9 pm. Multi-shot, 3-triggered",1.50,Yes,
+0,10,19657,US,4/2/2018,5/17/2018,5/17/2018,Energizer,Lithium,1.78,1.72,On,Yes,Enhanced,"Hourly from 5 am - 9 pm. Multi-shot, 3-triggered",1.10,Yes,
+0,17,16139,US,4/2/2018,5/10/2018,5/10/2018,Energizer,Lithium,1.76,1.75,On,Yes,Enhanced,"Hourly from 5 am - 9 pm. Multi-shot, 3-triggered",0.90,No,
+1,18,14434,US,4/2/2018,5/10/2018,4/6/2018,Energizer,Lithium,1.76,,On,Yes,Enhanced,"Hourly from 5 am - 9 pm. Multi-shot, 3-triggered",0.20,Yes,"Volts read 0.00, 0.00, 0.00, 0.00, 0.16, 1.28, 1.59, 1.59"
+1,24,15240,US,4/2/2018,5/17/2018,4/2/2018,Energizer,Lithium,1.78,,On,Yes,Enhanced,"Hourly from 5 am - 9 pm. Multi-shot, 3-triggered",0.00,Yes,"Volts read 0.60, 0.58, 0.00, 0.54, 0.38, 0.43, 0.00, 0.52"
+0,15,19707,US,4/9/2018,5/23/2018,5/23/2018,Energizer,Lithium,1.79,1.74,On,Yes,Enhanced,"Hourly from 5 am - 9 pm. Multi-shot, 3-burst",1.10,No,
+0,16,16322,US,4/9/2018,5/23/2018,5/23/2018,Energizer,Lithium,1.78,1.74,On,Yes,Enhanced,"Hourly from 5 am - 9 pm. Multi-shot, 3-burst",1.10,No,
+0,19,17534,US,4/9/2018,5/23/2018,5/23/2018,Energizer,Lithium,1.78,1.74,On,Yes,Enhanced,"Hourly from 5 am - 9 pm. Multi-shot, 3-burst",1.40,No,
+0,20,18720,US,4/9/2018,5/23/2018,5/23/2018,Energizer,Lithium,1.78,1.74,On,Yes,Enhanced,"Hourly from 5 am - 9 pm. Multi-shot, 3-burst",1.10,Yes,
+0,1,19097,DS,4/19/2018,5/17/2018,5/17/2018,Energizer,Lithium,1.78,1.74,On,Yes,Enhanced,"Hourly from 5 am - 10 pm. Multi-shot, 3-burst",0.40,No,
+1,13,20050,US,4/19/2018,5/17/2018,4/20/2018,Energizer,Lithium,1.80,,On,Yes,Enhanced,"Hourly from 5 am - 10 pm. Multi-shot, 3-burst",0.00,No,"Volts read 0.00, 0.00, 0.00, 0.01, 0.00, 0.00, -0.35, 0.00"
+1,14,16274,US,4/19/2018,5/17/2018,5/7/2018,Energizer,Lithium,1.82,,On,Yes,Enhanced,"Hourly from 5 am - 10 pm. Multi-shot, 3-burst",0.50,No,"Volts read 0.00, 1.38, 1.52, -0.07, 0.00, 0.38, -0.04, 1.43"
+1,7,19022,DS,4/19/2018,6/8/2018,5/3/2018,Energizer,Lithium,1.80,,On,No,Enhanced,"Hourly from 5 am - 10 pm. Multi-shot, 3-burst",0.37,No,"Volts read 0.00, 1.57, 0.32, 0.0, 0.00, 0.31, -0.0, 1.45"
+0,12,18536,DS,4/19/2018,6/8/2018,6/8/2018,Energizer,Lithium,1.79,1.75,On,Yes,Enhanced,"Hourly from 5 am - 10 pm. Multi-shot, 3-burst",1.32,No,
+0,11,19013,DS,4/19/2018,6/8/2018,6/8/2018,Energizer,Lithium,1.80,1.77,On,Yes,Enhanced,"Hourly from 5 am - 10 pm. Multi-shot, 3-burst",1.25,No,
+0,3,18421,DS,5/8/2018,7/11/2018,7/11/2018,Energizer,Lithium,1.82,1.77,On,Yes,Enhanced,"Hourly from 5 am - 10 pm. Multi-shot, 3-burst",0.90,No,
+0,4,18421,US,5/8/2018,7/11/2018,7/11/2018,Energizer,Lithium,1.81,1.80,On,Yes,Enhanced,"Hourly from 5 am - 10 pm. Multi-shot, 3-burst",0.80,No,
+0,5,18421,DS,5/8/2018,7/11/2018,7/11/2018,Energizer,Lithium,1.80,1.79,On,Yes,Enhanced,"Hourly from 5 am - 10 pm. Multi-shot, 3-burst",0.90,No,
+1,30,15499,US,5/8/2018,7/3/2018,5/14/2018,Energizer,Lithium,1.82,,On,Yes,Enhanced,"Hourly from 5 am - 10 pm. Multi-shot, 3-burst",0.10,No,"Volts read -0.09, 0.00, 0.00, 1.50, 0.00, 0.01, 0.00, 1.48"
+0,22,15244,DS,5/10/2018,6/20/2018,6/20/2018,Energizer,Lithium,1.81,1.74,On,Yes,Enhanced,"Hourly from 5 am - 10 pm. Multi-shot, 3-burst",2.50,No,
+0,23,14523,DS,5/10/2018,6/20/2018,6/20/2018,Energizer,Lithium,1.81,1.76,On,Yes,Enhanced,"Hourly from 5 am - 10 pm. Multi-shot, 3-burst",2.60,No,
+0,25,15100,US,5/10/2018,6/20/2018,6/20/2018,Energizer,Lithium,1.80,1.75,On,Yes,Enhanced,"Hourly from 5 am - 10 pm. Multi-shot, 3-burst",2.80,No,
+0,17,16139,US,5/10/2018,6/20/2018,6/20/2018,Energizer,Lithium,1.75,1.75,On,Yes,Enhanced,"Hourly from 5 am - 10 pm. Multi-shot, 3-burst",1.00,No,Reused batteries since amps were ok
+1,18,14434,US,5/10/2018,5/18/2018,5/16/2018,Energizer,Lithium,1.77,,On,Yes,Enhanced,"Hourly from 5 am - 10 pm. Multi-shot, 3-burst",,Yes,"Volts read 1.57,1.48,0.51,0.38,0.00,1.52,1.56,0.43"
+0,26,15240,US,5/17/2018,7/3/2018,7/3/2018,Energizer,Lithium,1.84,1.75,On,Yes,Enhanced,"Hourly from 5 am - 10 pm. Multi-shot, 3-burst",3.00,Yes,
+1,10,19657,US,5/17/2018,6/20/2018,5/26/2018,Energizer,Lithium,1.72,,On,Yes,Enhanced,"Hourly from 5 am - 10 pm. Multi-shot, 3-burst",0.20,Yes,"Volts read 1.57,1.58,0.0,0.0,0.15,0.0,0.0,0.02"
+0,29,19711,US,5/17/2018,7/3/2018,5/22/2018,Energizer,Lithium,1.76,1.75,On,,,Hourly from 5 am - 10 pm,0.10,No,
+0,1,19097,DS,5/17/2018,7/3/2018,7/3/2018,Energizer,Lithium,1.74,1.78,On,Yes,Enhanced,"Hourly from 5 am - 10 pm. Multi-shot, 3-burst",0.60,No,
+0,8,20050,DS,5/17/2018,6/8/2018,6/8/2018,Energizer,Lithium,1.81,1.74,On,Yes,Enhanced,"Hourly from 5 am - 10 pm. Multi-shot, 3-burst",0.56,No,
+0,27,16274,US,5/17/2018,6/8/2018,6/8/2018,Energizer,Lithium,1.84,1.75,On,Yes,Enhanced,"Hourly from 5 am - 10 pm. Multi-shot, 3-burst",1.40,No,
+0,20,18720,US,5/23/2018,7/11/2018,7/11/2018,Energizer,Lithium,1.74,1.77,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-burst",1.80,Yes,Reused batteries since amps were ok
+1,19,17534,US,5/23/2018,7/11/2018,5/26/2018,Energizer,Lithium,1.74,,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-burst",0.10,No,"Reused batteries since amps were ok. Volts read 0.34, 0.00, 0.42, 0.35, -0.00, 1.13, 0.00, 0.56"
+0,21,15796,US,5/23/2018,7/11/2018,7/11/2018,Energizer,Lithium,1.74,1.76,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-burst",1.72,Yes,Reused batteries since amps were ok
+1,6,15801,DS,5/23/2018,7/11/2018,6/21/2018,Energizer,Lithium,1.74,,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-burst",1.10,Yes,"Reused batteries since amps were ok. Volts read 1.59, 1.58, 0.00, 0.00, 0.49, 0.00, 0.00, 1.51"
+0,15,19707,US,5/23/2018,7/11/2018,7/11/2018,Energizer,Lithium,1.74,1.75,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-burst",,No,Reused batteries since amps were ok
+0,16,16322,US,5/23/2018,7/11/2018,7/11/2018,Energizer,Lithium,1.74,1.74,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-burst",1.70,No,Reused batteries since amps were ok
+0,13,19141,DS,6/1/2018,7/18/2018,7/18/2018,Energizer,Lithium,1.80,1.85,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-burst",1.70,No,Permission from Landowner #261 Cook Hill Rd
+0,8,20050,DS,6/8/2018,7/18/2018,7/18/2018,Energizer,Lithium,1.74,1.75,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-burst",1.40,No,Reused batteries since amps were ok
+0,27,16274,US,6/8/2018,7/18/2018,7/18/2018,Energizer,Lithium,1.75,1.74,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-burst",3.00,No,Reused batteries since amps were ok
+0,12,18536,DS,6/8/2018,7/18/2018,7/18/2018,Energizer,Lithium,1.75,1.77,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-burst",1.40,No,Reused batteries since amps were ok
+0,11,19013,DS,6/8/2018,7/18/2018,7/18/2018,Energizer,Lithium,1.77,1.76,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-burst",1.40,No,Reused batteries since amps were ok
+1,24,19022,DS,6/8/2018,7/18/2018,6/26/2018,Energizer,Lithium,1.84,,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-burst",1.40,No,"Reused batteries since amps were ok. Volts read 1.01, 1.31, 1.32, 1.33, 1.31, 0.09, 0.00, 0.00"
+0,22,15244,DS,6/20/2018,7/24/2018,7/24/2018,Energizer,Lithium,1.74,1.74,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",2.40,No,Reused batteries since amps were ok
+0,23,14523,DS,6/20/2018,7/24/2018,7/24/2018,Energizer,Lithium,1.76,1.77,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",2.40,No,Reused batteries since amps were ok
+0,25,15100,US,6/20/2018,7/24/2018,7/24/2018,Energizer,Lithium,1.75,1.78,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",2.60,No,Reused batteries since amps were ok
+0,17,16139,US,6/20/2018,7/24/2018,7/24/2018,Energizer,Lithium,1.75,1.74,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.20,No,Reused batteries since amps were ok
+0,32,19657,US,6/20/2018,7/24/2018,7/24/2018,Energizer,Lithium,1.75,1.74,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",2.50,Yes,
+0,28,16046,US,6/29/2018,8/1/2018,8/1/2018,Energizer,Lithium,1.80,1.73,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",2.20,No,
+0,1,19097,DS,7/3/2018,8/1/2018,8/1/2018,Energizer,Lithium,1.78,1.73,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",0.50,No,Reused batteries since amps were ok
+0,31,15499,US,7/3/2018,8/1/2018,8/1/2018,Energizer,Lithium,1.75,1.72,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",2.00,No,
+1,29,19711,US,7/3/2018,8/1/2018,7/31/2018,Energizer,Lithium,1.75,1.72,On,No,,Hourly 24/7,,No,Reused batteries since amps were ok. Seems like the camera reset the date/time around July 31 (possibly reset the date to July 4…?)
+0,26,15240,US,7/3/2018,8/1/2018,8/1/2018,Energizer,Lithium,1.75,1.72,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",2.20,Yes,Reused batteries since amps were ok
+0,3,18421,DS,7/11/2018,8/8/2018,8/8/2018,Energizer,Lithium,1.77,1.77,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",0.50,No,Reused batteries since amps were ok
+0,4,18421,US,7/11/2018,8/8/2018,8/8/2018,Energizer,Lithium,1.80,1.77,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",0.50,No,Reused batteries since amps were ok
+0,5,18421,DS,7/11/2018,8/8/2018,8/8/2018,Energizer,Lithium,1.79,1.77,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",0.50,No,Reused batteries since amps were ok
+1,20,18720,DS,7/11/2018,8/8/2018,8/8/2018,Energizer,Lithium,1.77,,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.00,Yes,"Reused batteries since amps were ok. Battery voltage reader broke in field, could not determine end battery amp."
+1,21,15796,US,7/11/2018,8/8/2018,8/8/2018,Energizer,Lithium,1.76,,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.00,Yes,Reused batteries since amps were ok. Forgot to write down end battery amp.
+0,30,15801,DS,7/11/2018,8/8/2018,8/8/2018,Energizer,Lithium,1.84,1.76,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.00,Yes,
+0,15,19707,DS,7/11/2018,8/8/2018,8/8/2018,Energizer,Lithium,1.75,1.72,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",,No,Reused batteries since amps were ok
+0,16,16322,US,7/11/2018,8/8/2018,8/8/2018,Energizer,Lithium,1.74,1.74,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.00,No,Reused batteries since amps were ok
+0,27,16274,US,7/18/2018,8/15/2018,8/15/2018,Energizer,Lithium,1.74,1.71,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.90,No,Reused batteries since amps were ok
+0,34,19022,DS,7/18/2018,8/15/2018,8/15/2018,Energizer,Lithium,1.86,1.73,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.00,No,
+0,8,20050,DS,7/18/2018,8/15/2018,8/15/2018,Energizer,Lithium,1.75,1.71,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.00,No,Reused batteries since amps were ok
+0,13,19141,DS,7/18/2018,8/15/2018,8/15/2018,Energizer,Lithium,1.85,,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.00,No,Reused batteries since amps were ok
+0,12,18536,DS,7/18/2018,8/15/2018,8/15/2018,Energizer,Lithium,1.77,1.72,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.00,No,Reused batteries since amps were ok
+0,11,19013,DS,7/18/2018,8/15/2018,8/15/2018,Energizer,Lithium,1.76,1.71,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.00,No,Reused batteries since amps were ok
+0,22,15244,DS,7/24/2018,8/21/2018,8/21/2018,Energizer,Lithium,1.74,1.70,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.70,No,Reused batteries since amps were ok
+0,23,14523,DS,7/24/2018,8/21/2018,8/21/2018,Energizer,Lithium,1.77,1.70,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.80,No,Reused batteries since amps were ok
+0,25,15100,US,7/24/2018,8/21/2018,8/21/2018,Energizer,Lithium,1.78,1.70,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",2.00,No,Reused batteries since amps were ok
+0,17,16139,US,7/24/2018,8/21/2018,8/21/2018,Energizer,Lithium,1.74,1.70,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.00,No,Reused batteries since amps were ok
+0,32,19657,US,7/24/2018,8/21/2018,8/21/2018,Energizer,Lithium,1.74,1.68,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.70,Yes,Reused batteries since amps were ok
+0,33,14434,US,7/24/2018,8/21/2018,8/21/2018,Energizer,Lithium,1.81,1.70,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.00,Yes,
+0,29,19711,US,8/1/2018,8/29/2018,8/29/2018,Energizer,Lithium,1.72,1.73,On,No,,Hourly 24/7,0.00,No,Reused batteries since amps were ok
+0,26,15240,US,8/1/2018,8/29/2018,8/29/2018,Energizer,Lithium,1.72,1.71,On,Yes,Enhanced,Hourly 24/7,2.00,Yes,Reused batteries since amps were ok
+0,1,19097,DS,8/1/2018,8/29/2018,8/29/2018,Energizer,Lithium,1.73,1.73,On,Yes,Enhanced,Hourly 24/7,0.50,No,Reused batteries since amps were ok
+0,31,15499,US,8/1/2018,8/29/2018,8/29/2018,Energizer,Lithium,1.72,1.72,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.80,No,"Reused batteries since amps were ok. Water got into camera where buttons are, could not check or reset settings, but was able to start it again."
+0,28,16046,US,8/1/2018,9/22/2018,9/22/2018,Energizer,Lithium,1.73,1.71,On,Yes,Enhanced,Hourly 24/7,,No,"Reused batteries since amps were ok, Branch fell into field of view."
+0,3,18421,DS,8/8/2018,9/5/2018,9/5/2018,Energizer,Lithium,1.77,1.71,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",0.50,No,Reused batteries since amps were ok
+0,4,18421,US,8/8/2018,9/5/2018,9/5/2018,Energizer,Lithium,1.77,1.72,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",0.50,No,Reused batteries since amps were ok
+0,5,18421,DS,8/8/2018,9/5/2018,9/5/2018,Energizer,Lithium,1.77,1.72,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",0.50,No,Reused batteries since amps were ok
+1,20,18720,DS,8/8/2018,9/5/2018,9/5/2018,Energizer,Lithium,,1.71,On,Yes,Enhanced,Hourly 24/7,1.00,Yes,"Reused batteries since last picture was taken on 8/8. Battery voltage reader broke in field, could not determine start battery amp."
+1,21,15796,US,8/8/2018,9/5/2018,9/5/2018,Energizer,Lithium,,1.71,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.00,Yes,Reused batteries since amps were ok. Forgot to write down battery amp when tested on 8/8.
+0,30,15801,DS,8/8/2018,9/5/2018,9/5/2018,Energizer,Lithium,1.76,1.72,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.00,Yes,Reused batteries since amps were ok
+0,15,19707,DS,8/8/2018,9/5/2018,9/5/2018,Energizer,Lithium,1.72,1.70,On,Yes,Enhanced,Hourly 24/7,1.00,No,Reused batteries since amps were ok
+0,16,16322,US,8/8/2018,9/5/2018,9/5/2018,Energizer,Lithium,1.74,1.71,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.00,No,Reused batteries since amps were ok
+1,38,17534,US,8/8/2018,9/5/2018,9/5/2018,Energizer,Lithium,,1.73,On,Yes,,Hourly 24/7,0.60,No,"Battery voltage reader broke in field, could not determine start battery amp."
+0,27,16274,US,8/15/2018,9/12/2018,9/12/2018,Energizer,Lithium,1.71,1.71,On,Yes,Enhanced,Hourly 24/7,1.90,No,Reused batteries since amps were ok
+1,8,20050,DS,8/15/2018,9/12/2018,9/12/2018,Energizer,Lithium,1.71,,On,Yes,Enhanced,Hourly 24/7,1.00,No,"Reused batteries since amps were ok. Did not check ""End Battery Amp"" on 9/12 because it was raining, but last picture was taken on 9/12 so assumed that batteries were still good."
+0,34,19022,US,8/15/2018,9/12/2018,9/12/2018,Energizer,Lithium,1.73,1.72,On,Yes,Enhanced,Hourly 24/7,1.00,No,Reused batteries since amps were ok
+0,12,18536,DS,8/15/2018,9/12/2018,9/12/2018,Energizer,Lithium,1.72,1.70,On,Yes,Enhanced,"Hourly 24/7. Multi-shot, 3-triggered",1.00,No,Reused batteries since amps were ok
+0,11,19013,DS,8/15/2018,9/12/2018,9/12/2018,Energizer,Lithium,1.71,1.71,On,Yes,Enhanced,Hourly 24/7,1.00,No,Reused batteries since amps were ok
+0,13,19141,DS,8/15/2018,9/12/2018,9/12/2018,Energizer,Lithium,,1.71,On,Yes,Enhanced,Hourly 24/7,1.01,No,Reused batteries since amps were ok
+0,22,15244,DS,8/21/2018,9/19/2018,9/19/2018,Energizer,Lithium,1.70,1.70,On,Yes,Enhanced,Hourly 24/7,1.75,No,Reused batteries since amps were ok
+1,23,14523,DS,8/21/2018,,,Energizer,Lithium,1.70,,On,Yes,Enhanced,Hourly 24/7,,No,"Reused batteries since amps were ok.  Highlighted, was not able to tell why."
+0,36,14523,US,8/21/2018,9/19/2018,9/19/2018,Energizer,Lithium,1.79,1.72,On,Yes,Enhanced,Hourly 24/7,0.30,No,
+0,25,15100,US,8/21/2018,9/19/2018,9/19/2018,Energizer,Lithium,1.70,1.70,On,Yes,Enhanced,Hourly 24/7,2.01,No,Reused batteries since amps were ok
+0,17,16139,US,8/21/2018,9/19/2018,9/19/2018,Energizer,Lithium,1.70,1.70,On,Yes,Enhanced,Hourly 24/7,1.02,No,Reused batteries since amps were ok
+0,35,19657,US,8/21/2018,9/19/2018,9/19/2018,Energizer,Lithium,1.68,1.71,On,Yes,Enhanced,Hourly 24/7,0.30,Yes,Reused batteries since amps were ok
+1,33,14434,US,8/21/2018,,,Energizer,Lithium,1.70,,On,Yes,Enhanced,Hourly 24/7,,Yes,"Reused batteries since amps were ok.  Highlighted, was not able to tell why."
+0,1,19097,DS,8/29/2018,,,Energizer,Lithium,1.73,,On,Yes,Enhanced,Hourly 24/7,,No,Reused batteries since amps were ok
+0,37,15499,US,8/29/2018,,,Energizer,Lithium,1.72,,On,Yes,Enhanced,Hourly 24/7,,No,Reused batteries from camera #31 since amps were ok
+0,26,15240,US,8/29/2018,,,Energizer,Lithium,1.71,,On,Yes,Enhanced,Hourly 24/7,,Yes,Reused batteries since amps were ok
+0,29,19711,US,8/29/2018,,,Energizer,Lithium,1.73,,On,No,,Hourly 24/7,,No,Reused batteries since amps were ok
+0,3,18421,DS,9/5/2018,,,Energizer,Lithium,1.71,,On,Yes,Enhanced,Hourly 24/7,,No,Reused batteries since amps were ok
+0,4,18421,US,9/5/2018,,,Energizer,Lithium,1.72,,On,Yes,Enhanced,Hourly 24/7,,No,Reused batteries since amps were ok
+0,5,18421,DS,9/5/2018,,,Energizer,Lithium,1.72,,On,Yes,Enhanced,Hourly 24/7,,No,Reused batteries since amps were ok
+0,20,18720,DS,9/5/2018,,,Energizer,Lithium,1.71,,On,Yes,Enhanced,Hourly 24/7,,Yes,Reused batteries since amps were ok
+0,21,15796,US,9/5/2018,,,Energizer,Lithium,1.71,,On,Yes,Enhanced,Hourly 24/7,,Yes,Reused batteries since amps were ok
+0,30,15801,DS,9/5/2018,,,Energizer,Lithium,1.72,,On,Yes,Enhanced,Hourly 24/7,,Yes,Reused batteries since amps were ok
+0,15,19707,DS,9/5/2018,,,Energizer,Lithium,1.70,,On,Yes,Enhanced,Hourly 24/7,,No,Reused batteries since amps were ok
+0,16,16322,US,9/5/2018,,,Energizer,Lithium,1.71,,On,Yes,Enhanced,Hourly 24/7,,No,Reused batteries since amps were ok
+0,38,17534,US,9/5/2018,,,Energizer,Lithium,1.73,,On,Yes,,Hourly 9 am to 8 pm,,No,Reused batteries since amps were ok
+0,34,19022,US,9/12/2018,,,Energizer,Lithium,1.72,,On,Yes,Enhanced,Hourly 24/7,,No,Reused batteries since amps were ok
+0,27,16274,US,9/12/2018,,,Energizer,Lithium,1.71,,On,Yes,Enhanced,Hourly 24/7,,No,Reused batteries since amps were ok
+1,8,20050,DS,9/12/2018,,,Energizer,Lithium,,,On,Yes,Enhanced,Hourly 24/7,,No,"Reused batteries since last picture was taken on 9/12. It was raining on 9/12 so we could not check the ""End Battery Amp"""
+0,12,18536,DS,9/12/2018,,,Energizer,Lithium,1.70,,On,Yes,Enhanced,Hourly 24/7,,No,Reused batteries since amps were ok
+0,11,19013,DS,9/12/2018,,,Energizer,Lithium,1.71,,On,Yes,Enhanced,Hourly 24/7,,No,Reused batteries since amps were ok
+0,13,19141,DS,9/12/2018,,,Energizer,Lithium,1.71,,On,Yes,Enhanced,Hourly 24/7,,No,Reused batteries since amps were ok
+0,22,15244,DS,9/19/2018,,,Energizer,Lithium,1.70,,On,Yes,Enhanced,Hourly 24/7,,No,Reused batteries since amps were ok
+0,36,14523,US,9/19/2018,,,Energizer,Lithium,1.72,,On,Yes,Enhanced,Hourly 24/7,,No,Reused batteries since amps were ok
+0,25,15100,US,9/19/2018,,,Energizer,Lithium,1.70,,On,Yes,Enhanced,Hourly 24/7,,No,Reused batteries since amps were ok
+0,17,16139,US,9/19/2018,,,Energizer,Lithium,1.70,,On,Yes,Enhanced,Hourly 24/7,,No,Reused batteries since amps were ok
+0,35,19657,US,9/19/2018,,,Energizer,Lithium,1.71,,On,Yes,Enhanced,Hourly 24/7,,Yes,Reused batteries since amps were ok
+0,28,16046,US,9/22/2018,,,Energizer,Lithium,1.79,,On,Yes,Enhanced,Hourly 24/7,,No,

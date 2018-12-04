@@ -1,0 +1,1 @@
+(Flag, Camera Number, STA_SEQ, US/DS, Deploy Start Date, Deploy End Date, Picture End Date, Battery Brand, Battery Type, Start Battery Amp, End Battery Amp, Infostrip, Motion Detect, Quality Setting, Time Lapse Settings, Memory Used (GB), USGS Gage, Comments)

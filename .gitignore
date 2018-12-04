@@ -1,0 +1,4 @@
+*.cfg
+.spyproject
+__pycache__/
+*.pyc
