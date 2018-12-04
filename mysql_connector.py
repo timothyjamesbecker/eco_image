@@ -6,20 +6,25 @@ import getpass
 import mysql.connector as msc  # pyodbc not easy to configure on mac, pypyodbc not encoding/decoding
 
 class MYSQL:
-    def __init__(self,host,db,port=3306,charset=['utf8','utf8_general_ci'],
-                 delim='?',uid=False,pwd=False): # constructor
-        # The MSSQL variables for injection safe connection strings
-        self.host    = host  # MYSQL server hostname to connect to
-        self.db      = db  # db name
-        self.port    = port
-        self.charset = charset
-        self.uid     = uid
-        self.pwd     = pwd
-        self.delim   = delim
-        self.errors  = ''
-        self.SQL     = []
-        self.V       = []
-        self.start()
+    def __init__(self,host,db,port=3306,uid=False,pwd=False,
+                 ssh_tunnel=False,ssh_uid=False,ssh_pwd=False,ssh_port=22,
+                 delim='?',charset=['utf8','utf8_general_ci']):
+        self.host       = host       # hostname to connect to: either MySQL server host or ssh
+        self.db         = db         # MySQL db schema name
+        self.port       = port       # MySQL db port
+        self.charset    = charset    # MySQL charset encoding for text,varchar
+        self.uid        = uid        # MySQL username
+        self.pwd        = pwd        # MySQL password
+        self.ssh_port   = ssh_port   # optional ssh port
+        self.ssh_uid    = ssh_uid    # optional ssh username
+        self.ssh_pwd    = ssh_pwd    # optional ssh password
+        self.ssh_tunnel = ssh_tunnel # use of optional ssh
+        self.tunnel     = None       # session attach point
+        self.delim      = delim      # the delimiter char pattern to switch for injection
+        self.errors     = ''         # error string for possible logging options
+        self.SQL        = []         # sql statement container
+        self.V          = []         # value container
+        self.start()                 # start a connection
 
     def __enter__(self):
         return self
@@ -28,6 +33,8 @@ class MYSQL:
     def __exit__(self, type, value, traceback):
         try:
             self.conn.close()
+            if self.tunnel is not None:
+                self.tunnel.stop()
         except RuntimeError:
             print('__exit__():ER1.ODBC')
             self.errors += '__exit__():ER1.ODBC' + '\n'
@@ -38,23 +45,57 @@ class MYSQL:
 
     def start(self):
         self.conn = None
-        if (not self.uid) and (not self.pwd):
-            print('uid: '),
-            self.uid = sys.stdin.readline().replace('\n','')
-            self.pwd = getpass.getpass(prompt='pwd: ',stream=None).replace('\n','')  # was stream=sys.sdin
-        try:  # connection start
-            self.conn = msc.connect(host=self.host,database=self.db,port=self.port,user=self.uid,password=self.pwd)
-            self.conn.set_charset_collation(self.charset[0],self.charset[1])
-        except RuntimeError:
-            print('start():ER3.ODBC')
-            self.errors += 'start():ER3.ODBC' + '\n'
-        except msc.errors.ProgrammingError:
-            print('start():ER4.Connection')
-            self.errors += 'start():ER4.Connection' + '\n'
-        except Exception as err:
-            print('start():ER5.Unknown_Error: {}'.format(err))
-            self.errors += 'start():ER5.Unknown_Error: {}'.format(err)+'\n'
-            pass
+        if self.ssh_tunnel:
+            import sshtunnel
+            if (not self.ssh_uid) and (not self.ssh_pwd):
+                print('ssh_uid: '),
+                self.ssh_uid = sys.stdin.readline().replace('\n','')
+                self.ssh_pwd = getpass.getpass(prompt='ssh_pwd: ',stream=None).replace('\n','')
+            if (not self.uid) and (not self.pwd):
+                print('db_uid: '),
+                self.uid=sys.stdin.readline().replace('\n','')
+                self.pwd=getpass.getpass(prompt='db_pwd: ',stream=None).replace('\n','')  # was stream=sys.sdin
+            print('opening ssh tunnel...')
+            self.tunnel = sshtunnel.SSHTunnelForwarder(
+                    (self.host,self.ssh_port),
+                    ssh_username=self.ssh_uid,
+                    ssh_password=self.ssh_pwd,
+                    remote_bind_address=('127.0.0.1',self.port),
+                    local_bind_address=('0.0.0.0',self.port)
+            ).start()
+            try:
+                self.conn = msc.connect(host='127.0.0.1',database=self.db,port=self.port,
+                                        user=self.uid,password=self.pwd)
+                self.conn.set_charset_collation(self.charset[0],self.charset[1])
+                print('tunnel established...')
+            except RuntimeError:
+                print('start():ER3.ODBC')
+                self.errors+='start():ER3.ODBC'+'\n'
+            except msc.errors.ProgrammingError:
+                print('start():ER4.Connection')
+                self.errors+='start():ER4.Connection'+'\n'
+            except Exception as err:
+                print('start():ER5.Unknown_Error: {}'.format(err))
+                self.errors+='start():ER5.Unknown_Error: {}'.format(err)+'\n'
+                pass
+        else:
+            if (not self.uid) and (not self.pwd):
+                print('db_uid: '),
+                self.uid = sys.stdin.readline().replace('\n','')
+                self.pwd = getpass.getpass(prompt='db_pwd: ',stream=None).replace('\n','')  # was stream=sys.sdin
+            try:  # connection start
+                self.conn = msc.connect(host=self.host,database=self.db,port=self.port,user=self.uid,password=self.pwd)
+                self.conn.set_charset_collation(self.charset[0],self.charset[1])
+            except RuntimeError:
+                print('start():ER3.ODBC')
+                self.errors += 'start():ER3.ODBC' + '\n'
+            except msc.errors.ProgrammingError:
+                print('start():ER4.Connection')
+                self.errors += 'start():ER4.Connection' + '\n'
+            except Exception as err:
+                print('start():ER5.Unknown_Error: {}'.format(err))
+                self.errors += 'start():ER5.Unknown_Error: {}'.format(err)+'\n'
+                pass
 
     #takes a list of queries QS: [{'sql':'select * from %s.%s where %s = ?'%('test','test','pk'),'v':[13]]
     #and converts the sql to a mysql.connector 8.13+ version -> ? =? %s and attaches to SQL and V
