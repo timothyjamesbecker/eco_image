@@ -32,9 +32,12 @@ class MYSQL:
     # type is that the DB error is generating stange files
     def __exit__(self, type, value, traceback):
         try:
+            print('closing the connection')
             self.conn.close()
             if self.tunnel is not None:
+                print('closing ssh tunnel...')
                 self.tunnel.stop()
+                print('tunnel has been closed...')
         except RuntimeError:
             print('__exit__():ER1.ODBC')
             self.errors += '__exit__():ER1.ODBC' + '\n'
@@ -62,7 +65,8 @@ class MYSQL:
                     ssh_password=self.ssh_pwd,
                     remote_bind_address=('127.0.0.1',self.port),
                     local_bind_address=('0.0.0.0',self.port)
-            ).start()
+            )
+            self.tunnel.start()
             try:
                 self.conn = msc.connect(host='127.0.0.1',database=self.db,port=self.port,
                                         user=self.uid,password=self.pwd)
