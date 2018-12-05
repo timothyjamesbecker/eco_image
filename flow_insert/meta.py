@@ -4,7 +4,6 @@ import multiprocessing as mp
 import utils
 from collections import defaultdict
 import hashlib
-import binascii
 
 """ImageDescription, Orientation,
 XResolution, YResolution,
@@ -34,7 +33,7 @@ def collect_results(result):
                     data += chunk
                     hasher.update(chunk)
             checksum = hasher.hexdigest()
-            r[k]["RawData"] = str(binascii.hexlify(data))
+            r[k]["RawData"] = str(data)
             r[k]["Checksum"] = checksum
     results.extend(result)
 
