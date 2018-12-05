@@ -147,7 +147,7 @@ if __name__ == '__main__':
             "MaxApertureValue,MeteringMode,Flash,"
             "Checksum,RawData")
     # statement for image table insertion
-    statement = "insert into image (" + columns + ") values "
+    statement = "insert into jpgImage (" + columns + ") values "
     # build upon this to use for image insert ... (%s, %s,...),
     query = ''
     # statement and query for inserting into log table
