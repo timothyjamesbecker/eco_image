@@ -41,7 +41,7 @@ def crop_seg(img,seg,final=(640,480)):
             img = img[:,seg[2]:,:]
     return img
 
-def resize(img,width=640,height=480):
+def resize(img,width=640,height=480,interp=cv2.INTER_CUBIC):
     h_scale = height/(img.shape[0]*1.0)
     w_scale =  width/(img.shape[1]*1.0)
     if w_scale<h_scale:
@@ -75,12 +75,12 @@ else:
         offset = 0.9
     else:
         offset = 0.75
-plot(img)
+# plot(img)
 seg = get_seg_line(img,offset=offset)
 img = crop_seg(img,seg)
-plot(img)
+# plot(img)
 web = resize(img,width=1280,height=720)
-plot(web)
+# plot(web)
 thb = resize(img,width=256,height=192)
 plot(thb)
 #some db experiements
