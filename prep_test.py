@@ -6,7 +6,7 @@ import glob
 import mysql_connector as msc
 
 #uses the
-def get_seg_line(img,low=50,high=150,average=True,offset=0.8,vertical=False):
+def get_seg_line(img,low=50,high=150,average=True,mult=0.8,vertical=False):
     seg = [0,0,0,0]
     edges = cv2.Canny(img,low,high,apertureSize=3)
     lines = cv2.HoughLines(edges,1,np.pi/180,200)
@@ -19,11 +19,11 @@ def get_seg_line(img,low=50,high=150,average=True,offset=0.8,vertical=False):
         seg[3] = min(img.shape[1],max(0,int(round(y0-img.shape[0]*(a)))))
     if average and vertical:
         seg[0] = int(round(np.mean([seg[0],seg[2]])))
-        seg[0] -= int(round((img.shape[0]-seg[1])*offset))
+        seg[0] -= int(round((img.shape[0]-seg[1])*mult))
         seg[2] = seg[0]
     if average and not vertical:
         seg[1] = int(round(np.mean([seg[1],seg[3]])))
-        seg[1] -= int(round((img.shape[0]-seg[1])*offset))
+        seg[1] -= int(round((img.shape[0]-seg[1])*mult))
         seg[3] = seg[1]
     return seg
 
@@ -69,14 +69,14 @@ cameras = {c.rsplit('/')[-1]:c for c in camera_folders}
 img = cv2.imread(glob.glob(cameras[camera_type]+'/*')[0])
 img_gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 if camera_type.startswith('M-'):
-    offset = 0.10
+    seg_mult = 0.10
 else:
     if camera_type.startswith('BUSH'):
-        offset = 0.9
+        seg_mult = 0.9
     else:
-        offset = 0.75
+        seg_mult = 0.75
 # plot(img)
-seg = get_seg_line(img,offset=offset)
+seg = get_seg_line(img,mult=seg_mult)
 img = crop_seg(img,seg)
 # plot(img)
 web = resize(img,width=1280,height=720)

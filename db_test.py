@@ -39,8 +39,8 @@ else:
 
 uid,pwd=False,False
 local_path = os.path.dirname(os.path.abspath(__file__))
-if os.path.exists(local_path+'/test.cfg'):
-    with open(local_path+'/test.cfg','r') as f:
+if os.path.exists(local_path+'/db.cfg'):
+    with open(local_path+'/db.cfg','r') as f:
         raw = f.readlines()
         uid = raw[0].replace('\n','')
         pwd = raw[1].replace('\n','')
