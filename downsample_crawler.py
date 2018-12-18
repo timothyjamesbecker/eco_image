@@ -9,18 +9,23 @@ import multiprocessing as mp
 import mysql_connector as mysql #uses mysql.connector 8.13+, and optionally parimiko->sshtunnel
 import utils
 
-des="""bottom-center priority image crop/resize crawler\nTimothy James Becker"""
-parser = argparse.ArgumentParser(description=des,formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument('--host',type=str, help='host name\t\t\t[None]')
-parser.add_argument('--port',type=int,help='port number\t\t\t[None]')
-parser.add_argument('--db',type=str,help='db schema name\t\t\t[None]')
-parser.add_argument('--img_table',type=str,help='image table name\t\t\t[None]')
-parser.add_argument('--inv_table',type=str,help='inventory table name\t\t\t[None]')
-parser.add_argument('--tunnel',action='store_true',help='use a ssh tunnel\t\t[False]')
-parser.add_argument('--img_batch',type=int,help='number of images to proccess\t\t\t[1]')
+des="""
+---------------------------------------------------
+Bottom-Center Priority Image Crop/Resize Crawler
+Timothy James Becker 12-18-2018
+---------------------------------------------------"""
+parser = argparse.ArgumentParser(description=des.lstrip(" "),formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument('--host',type=str, help='host name\t\t\t\t\t\t\t[None]')
+parser.add_argument('--port',type=int,help='port number\t\t\t\t\t\t\t[None]')
+parser.add_argument('--db',type=str,help='db schema name\t\t\t\t\t\t\t[None]')
+parser.add_argument('--img_table',type=str,help='image table name\t\t\t\t\t\t[None]')
+parser.add_argument('--inv_table',type=str,help='inventory table name\t\t\t\t\t\t[None]')
+parser.add_argument('--tunnel',action='store_true',help='use a ssh tunnel\t\t\t\t\t\t[False]')
+parser.add_argument('--img_batch',type=int,help='number of images to proccess\t\t\t\t\t[1]')
+parser.add_argument('--img_q',type=int,help='number of images to retrieve per query\t\t\t\t[1]')
 parser.add_argument('--img_offset',type=int,help='number of records to offset the start of the select,insert\t[0]')
-parser.add_argument('--cpus',type=int,help='number of cores to use to process the images\t[1]')
-parser.add_argument('--verbose',action='store_true',help='print/plot everything\t\t[False]')
+parser.add_argument('--cpus',type=int,help='number of cores to use to process the images\t\t\t[1]')
+parser.add_argument('--verbose',action='store_true',help='print/plot everything\t\t\t\t\t\t[False]')
 args = parser.parse_args()
 
 if args.host is not None:
@@ -47,6 +52,10 @@ if args.img_batch is not None:
     img_batch = args.img_batch
 else:
     img_batch = 1
+if args.img_q is not None:
+    img_q = args.img_q
+else:
+    img_q = 1
 if args.img_offset is not None:
     img_offset = args.img_offset
 else:
@@ -61,47 +70,51 @@ def collect_results(result):
     result_list.append(result)
 
 def crop_resize_images(db,tbl,camera,params):
-    R = []
-    # for i in range(params['limit'): #one at a time, then b at a time
-    #get the PK and the RawData value
-    S = [{'sql':'select * from %s.%s limit %s offset %s;'%(db,tbl,params['limit'],0+params['offset'])}]
-    print(S)
-    with mysql.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd,
-                     ssh_uid=ssh_uid,ssh_pwd=ssh_pwd,
-                     delim='?',ssh_tunnel=args.tunnel) as dbo:
-        dbo.set_SQL_V(S)
-        R = dbo.run_SQL_V()
-    try:
-        row = R[0][0]
-        c_id,t_id = row['CameraNumber'],row['TimeTaken']       #pk = (c_id,t_id)
-        raw_img   = utils.blob2img(row['RawData'])             #never touch original
-        seg_mult = utils.get_camera_seg_mult(camera[c_id])     #get camera model
-        seg      = utils.get_seg_line(raw_img,mult=seg_mult)   #get dominant seg line => footer
-        raw_img  = utils.crop_seg(raw_img,seg)                 #slice image
-        web_img  = utils.resize(raw_img,
-                                width=params['res']['web'][0],
-                                height=params['res']['web'][1])
-        web_blob = utils.img2blob(web_img)
-        thb_img  = utils.resize(raw_img,
-                                width=params['res']['thb'][0],
-                                height=params['res']['thb'][1])
-        thb_blob = utils.img2blob(thb_img)
-        #write it back pk => camera and time
-        U = [{'sql':'update %s.%s set WebData = ?,ThumbData = ? where %s = ? and %s = ?;'%\
-                  (db,tbl,'CameraNumber','TimeTaken'),
-              'v':(web_blob,thb_blob,c_id,t_id)}]
+    offset,q_lim,t_lim = params['offset'],params['q_lim'],params['t_lim']
+    w_res,t_res = params['res']['web'],params['res']['thb']
+    R,T = {},{}
+    for i in range(0,t_lim,q_lim):
+        if (i+q_lim) <= t_lim: limit = q_lim
+        else:                  limit = i+q_lim-t_lim
+        S = [{'sql':'select * from %s.%s limit %s offset %s;'%(db,tbl,limit,offset+i)}]
         with mysql.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd,
                          ssh_uid=ssh_uid,ssh_pwd=ssh_pwd,
                          delim='?',ssh_tunnel=args.tunnel) as dbo:
-            dbo.set_SQL_V(U)
+            dbo.set_SQL_V(S)
             R = dbo.run_SQL_V()
-            success = True
-    except Exception as E:
-        success = False
-        pass
-    return [success]
+        #iterate on the results
+        if len(R)>0:
+            j = 0
+            for row in R[0]:
+                if len(row)>0:
+                    try:
+                        c_id,t_id = row['CameraNumber'],row['TimeTaken']        #pk = (c_id,t_id)
+                        raw_img   = utils.blob2img(row['RawData'])              #never touch original
+                        seg_mult  = utils.get_camera_seg_mult(camera[c_id])     #get camera model
+                        seg       = utils.get_seg_line(raw_img,mult=seg_mult)   #get dominant seg line => footer
+                        raw_img   = utils.crop_seg(raw_img,seg)                 #slice image
+                        web_img   = utils.resize(raw_img,w_res[0],w_res[1])
+                        web_blob  = utils.img2blob(web_img)
+                        thb_img   = utils.resize(raw_img,t_res[0],t_res[1])
+                        thb_blob  = utils.img2blob(thb_img)
+                        #write it back pk => camera and time
+                        U = [{'sql':'update %s.%s set WebData = ?,ThumbData = ? where %s = ? and %s = ?;'%\
+                                    (db,tbl,'CameraNumber','TimeTaken'),
+                              'v':(web_blob,thb_blob,c_id,t_id)}]
+                        with mysql.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd,
+                                         ssh_uid=ssh_uid,ssh_pwd=ssh_pwd,
+                                         delim='?',ssh_tunnel=args.tunnel) as dbo:
+                            dbo.set_SQL_V(U)
+                            R = dbo.run_SQL_V()
+                            T[offset+i+j] = True
+                    except Exception as E:
+                        T[offset+i+j] = [E.message]
+                        pass
+                j += 1
+    return T
 
 if __name__ == '__main__':
+    start = time.time()
     uid,pwd = False,False
     local_path = utils.local_path()
     if os.path.exists(local_path+'/db.cfg'):
@@ -121,7 +134,7 @@ if __name__ == '__main__':
     SQL = [{'sql':'select count(*) as n from %s.%s;'%(db,img_tbl)},
            {'sql':'select * from %s.%s;'%(db,inv_tbl)}]
     R,camera,n = [],{},0
-    print(SQL)
+    if args.verbose: print(SQL)
     with mysql.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd,
                      ssh_uid=ssh_uid,ssh_pwd=ssh_pwd,
                      delim='?',ssh_tunnel=args.tunnel) as dbo:
@@ -136,18 +149,22 @@ if __name__ == '__main__':
             pass
     if n > 0:
         n = min(n,img_batch)
-        w = n/cpus
-        f = n%cpus
-        P = {c:w for c in range(cpus)}
-        P[0] += f
-        ks = P.keys()
-        for p in ks: #clear any zero limit chucks
-            if P[p] == 0: P.pop(p) #when cpus are set higher than rows
-    offset,params,res = 0,{},{'web':(1024,576),'thb':(40,40)} #16:9 aspect, 4:3 aspect
-    for p in P:
-        params[p] = {'offset':offset,'limit':P[p],'res':res}
+        if args.tunnel:
+            P = {0:n} #can only bind one port
+        else:
+            w = n/cpus
+            f = n%cpus
+            P = {c:w for c in range(cpus)}
+            P[0] += f
+            ks = P.keys()
+            for p in ks: #clear any zero limit chucks
+                if P[p] == 0: P.pop(p) #when cpus are set higher than rows
+    offset,params,res = img_offset,{},{'web':(1024,576),'thb':(256,192)} #16:9 aspect, 4:3 aspect
+    for p in P: #t_lim is the total images per cpu, q_lim is the number of images per query
+        params[p] = {'offset':offset,'t_lim':P[p],'q_lim':img_q,'res':res}
         offset += P[p]
-    print(params)
+    print('cameras: %s'%camera)
+    print('params: %s'%params)
 
     p1 = mp.Pool(processes = cpus)
     for p in params:  # each site in ||
@@ -159,17 +176,25 @@ if __name__ == '__main__':
     p1.join()
     #collect results---------------------------------------------------------
     X = []
-    for l in result_list: X += l
-
-    S=[{'sql':'select * from %s.%s limit %s offset %s;'%(db,img_tbl,1,0)}]
-    print(S)
-    with mysql.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd,
-                     ssh_uid=ssh_uid,ssh_pwd=ssh_pwd,
-                     delim='?',ssh_tunnel=args.tunnel) as dbo:
-        dbo.set_SQL_V(S)
-        R = dbo.run_SQL_V()
-    if(len(R)>0 and len(R[0][0])>0):
-        utils.plot(utils.blob2img(R[0][0]['RawData']))
-        utils.plot(utils.blob2img(R[0][0]['WebData']))
-        utils.plot(utils.blob2img(R[0][0]['ThumbData']))
+    for l in result_list: X += [l]
+    if args.verbose: print('results: %s'%X)
+    stop = time.time()
+    print('finished processing %s rows in %s sec'%(n,round(stop-start,2)))
+    if args.verbose:
+        #print out two of the last ones effected to test functionality------------------------------------
+        S = [{'sql':'select * from %s.%s limit %s offset %s;'%(db,img_tbl,2,(n-2)+img_offset)}]
+        print(S)
+        with mysql.MYSQL(host=host,port=port,db=db,uid=uid,pwd=pwd,
+                         ssh_uid=ssh_uid,ssh_pwd=ssh_pwd,
+                         delim='?',ssh_tunnel=args.tunnel) as dbo:
+            dbo.set_SQL_V(S)
+            R = dbo.run_SQL_V()
+        if len(R)>0:
+            for row in R[0]:
+                if len(row)>0:
+                    utils.plot(utils.blob2img(row['RawData']))
+                    if row['WebData'] is not None:
+                        utils.plot(utils.blob2img(row['WebData']))
+                    if row['ThumbData'] is not None:
+                        utils.plot(utils.blob2img(row['ThumbData']))
 

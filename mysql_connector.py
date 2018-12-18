@@ -8,7 +8,7 @@ import mysql.connector as msc  # pyodbc not easy to configure on mac, pypyodbc n
 class MYSQL:
     def __init__(self,host,db,port=3306,uid=False,pwd=False,
                  ssh_tunnel=False,ssh_uid=False,ssh_pwd=False,ssh_port=22,
-                 delim='?',charset=['utf8','utf8_general_ci']):
+                 delim='?',charset=['utf8','utf8_general_ci'],verbose=False):
         self.host       = host       # hostname to connect to: either MySQL server host or ssh
         self.db         = db         # MySQL db schema name
         self.port       = port       # MySQL db port
@@ -22,6 +22,7 @@ class MYSQL:
         self.tunnel     = None       # session attach point
         self.delim      = delim      # the delimiter char pattern to switch for injection
         self.errors     = ''         # error string for possible logging options
+        self.verbose    = verbose
         self.SQL        = []         # sql statement container
         self.V          = []         # value container
         self.start()                 # start a connection
@@ -32,12 +33,12 @@ class MYSQL:
     # type is that the DB error is generating stange files
     def __exit__(self, type, value, traceback):
         try:
-            print('closing the connection')
+            if self.verbose: print('closing the connection')
             self.conn.close()
             if self.tunnel is not None:
-                print('closing ssh tunnel...')
+                if self.verbose: print('closing ssh tunnel...')
                 self.tunnel.stop()
-                print('tunnel has been closed...')
+                if self.verbose: print('tunnel has been closed...')
         except RuntimeError:
             print('__exit__():ER1.ODBC')
             self.errors += '__exit__():ER1.ODBC' + '\n'
@@ -58,7 +59,7 @@ class MYSQL:
                 print('db_uid: '),
                 self.uid=sys.stdin.readline().replace('\n','')
                 self.pwd=getpass.getpass(prompt='db_pwd: ',stream=None).replace('\n','')  # was stream=sys.sdin
-            print('opening ssh tunnel...')
+            if self.verbose: print('opening ssh tunnel...')
             self.tunnel = sshtunnel.SSHTunnelForwarder(
                     (self.host,self.ssh_port),
                     ssh_username=self.ssh_uid,
@@ -71,7 +72,7 @@ class MYSQL:
                 self.conn = msc.connect(host='127.0.0.1',database=self.db,port=self.port,
                                         user=self.uid,password=self.pwd)
                 self.conn.set_charset_collation(self.charset[0],self.charset[1])
-                print('tunnel established...')
+                if self.verbose: print('tunnel established...')
             except RuntimeError:
                 print('start():ER3.ODBC')
                 self.errors+='start():ER3.ODBC'+'\n'

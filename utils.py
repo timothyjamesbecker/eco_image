@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def local_path():
-    return os.path.abspath(__file__).replace('utils.py','')
+    return os.path.abspath(__file__).replace('utils.py','').replace('utils.pyc','')
 
 #given an image file with exif metadat return set of the tags that are required
 def get_exif_tags(path,tag_set='all'):
