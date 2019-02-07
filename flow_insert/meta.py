@@ -126,7 +126,7 @@ def get_meta(in_d, tag_s, q_d, c=mp.cpu_count(), m=0):
         for p in paths[sid]:
             # split folder name to later match against file name
             folder_info = os.path.basename(p).split('_')
-            folder_info[3] = folder_info[3].split(' ')[0]
+            folder_info[-1] = folder_info[-1].split(' ')[0]
             # for every path, name, file in the path
             for dirpath, dirnames, filenames in os.walk(p):
                 # images belonging to SID
@@ -136,8 +136,8 @@ def get_meta(in_d, tag_s, q_d, c=mp.cpu_count(), m=0):
                     # ensure that it is jpg, and match name to folder name
                     if f.lower().endswith(".jpg"):
                         file_info = f.split('_')
-                        if ' ' in file_info[3]:
-                            file_info[3] = file_info[3].split(' ')[0]
+                        if ' ' in file_info[-1]:
+                            file_info[-1] = file_info[-1].split(' ')[0]
                         if bool(set(file_info) == set(folder_info)):
                             sid_images.append(os.path.join(dirpath, f))
                         else:
