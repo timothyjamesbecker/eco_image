@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import sys
 import os
 import glob
@@ -20,18 +23,18 @@ for im_path in paths:
 
 """RESULTS FOR TESTS:
 tesseract english model output for MOULTRIE_M888_CROP_FULL.JPG is:
-@ 2°c -MOULTRIECAM 02 APR 2018 11:17 am
+at 2°c -MOULTRIECAM 02 APR 2018 11:17 am
 tesseract english model output for SPYPOINT_FORCE_CROP_FULL.JPG is:
 tesseract english model output for BUSHNELL_CROP_FULL.JPG is:
-ATTICA 70F21°C@® 09-05-2018 07: 44: 23
+ATTICA 70F21 degree C at registeredtrademark 09-05-2018 07: 44: 23
 tesseract english model output for MOULTRIE_M888_CROP_SHORT.JPG is:
-2°C
+2 degree C
 MOULTRIECAM
 02 APR 2018 11:17 am
 tesseract english model output for SPYPOINT_FORCE_CROP_SHORT.JPG is:
 05/18/201
 04:51 pm
-14:°c
+14: degreec
 tesseract english model output for BUSHNELL_CROP_SHORT.JPG is:
-10F21 °C@ 09-05-2018 O7: 44: 23
+10F21 degree C at 09-05-2018 O7: 44: 23
 """
