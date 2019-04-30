@@ -28,27 +28,37 @@ def find_nth(char,id, n):
     return start
 
 
-fpath = files[0]
-p1 = find_nth(fpath,'_',2)
-p2 = find_nth(fpath,'_',3)
-sid = fpath[0:5]
-name =  fpath[fpath.find('_')+1:p1]
-sdate = fpath[p1+1:p2]
-edate = fpath[p2+1:fpath.find(' ')]
-data = fpath + ',' + sid + ',' + name + ',' + sdate + ',' + edate
-datadict = {'fpath':fpath,'sid':sid,'name':name}
+imgfiles = {'fpath':[],'sid':[],'name':[],'sdate':[],'edate':[]}
 
-#Write to csv
-with open('filetest.csv', 'wb') as csvfile:
-    writer = csv.writer(csvfile, delimiter=' ',quoting=csv.QUOTE_NONE)
-    writer.writerow(fpath + ',' + sid + ',' + name + ',' + sdate + ',' + edate)
+for n in range(len(files)):
+    fpath = files[n]
+    p1 = find_nth(fpath,'_',2)
+    p2 = find_nth(fpath,'_',3)
+    sid = fpath[0:5]
+    name =  fpath[fpath.find('_')+1:p1]
+    sdate = fpath[p1+1:p2]
+    edate = fpath[p2+1:fpath.find(' ')]
+    data = fpath + ',' + sid + ',' + name + ',' + sdate + ',' + edate
+    imgfiles['fpath'].append(fpath)
+    imgfiles['sid'].append(sid)
+    imgfiles['name'].append(name)
+    imgfiles['sdate'].append(sdate)
+    imgfiles['edate'].append(edate)
+
+#datadict = {'fpath':fpath,'sid':sid,'name':name}
+
+#Write list to csv
+#with open('filetest.csv', 'wb') as csvfile:
+    #writer = csv.writer(csvfile, delimiter=' ',quoting=csv.QUOTE_NONE)
+    #writer.writerow(fpath + ',' + sid + ',' + name + ',' + sdate + ',' + edate)
     
 #Write dictionary to csv
-with open('testfiledict.csv', 'w') as csvfile:
-    fieldnames = ['fpath', 'sid','name','sdate','edate']
-    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-    writer.writeheader()
-    writer.writerow({'fpath':fpath,'sid':sid,'name':name,'sdate':sdate,'edate':edate})
+writefile = 'testfiledict.csv'
+fieldnames = ['fpath','sid', 'name']
+with open( writefile, 'w' ) as f:
+    writer = csv.writer(f)
+    writer.writerow(fieldnames)
+    writer.writerows(zip(imgfiles['fpath'],imgfiles['sid'],imgfiles['name'],imgfiles['sdate'],imgfiles['edate']))
     
 
 
