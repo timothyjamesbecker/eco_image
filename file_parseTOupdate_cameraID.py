@@ -27,7 +27,7 @@ def find_nth(char,id, n):
         n -= 1
     return start
 
-
+#Create a dictionary and store attributes needed to link to camera id
 imgfiles = {'fpath':[],'sid':[],'name':[],'sdate':[],'edate':[]}
 
 for n in range(len(files)):
@@ -44,21 +44,21 @@ for n in range(len(files)):
     imgfiles['name'].append(name)
     imgfiles['sdate'].append(sdate)
     imgfiles['edate'].append(edate)
-
+    
+#Write dictionary to csv
+writefile = 'imgfiles2018_attributeinfo.csv'
+fieldnames = ['fpath','sid', 'name','sdate','edate']
+with open( writefile, 'wb') as f:
+    writer = csv.writer(f)
+    writer.writerow(fieldnames)
+    writer.writerows(zip(imgfiles['fpath'],imgfiles['sid'],imgfiles['name'],imgfiles['sdate'],imgfiles['edate']))
+    
 #datadict = {'fpath':fpath,'sid':sid,'name':name}
 
 #Write list to csv
 #with open('filetest.csv', 'wb') as csvfile:
     #writer = csv.writer(csvfile, delimiter=' ',quoting=csv.QUOTE_NONE)
     #writer.writerow(fpath + ',' + sid + ',' + name + ',' + sdate + ',' + edate)
-    
-#Write dictionary to csv
-writefile = 'testfiledict.csv'
-fieldnames = ['fpath','sid', 'name']
-with open( writefile, 'w' ) as f:
-    writer = csv.writer(f)
-    writer.writerow(fieldnames)
-    writer.writerows(zip(imgfiles['fpath'],imgfiles['sid'],imgfiles['name'],imgfiles['sdate'],imgfiles['edate']))
     
 
 
