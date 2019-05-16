@@ -1,9 +1,28 @@
 import os
 import csv
+import piexif
+import datetime
+import time
 
 #identify a directory and list only folders in the directory
-imagedir = 'S:/Streamflow/Dry Stream Documentations/2018 Streamflow Monitoring/Pictures'
+imagedir = 'S:\\Streamflow\\Dry Stream Documentations\\2018 Streamflow Monitoring\\Pictures'
 fpathdir = [d for d in os.listdir(imagedir) if os.path.isdir(os.path.join(imagedir, d))]
+
+def get_exif_date_time(path,tag='0th',byte=306):
+    E = piexif.load(path)
+    t = E[tag][byte]
+    return t
+
+def parse_exif_date_time(t):
+    return datetime.datetime.strptime(t,'%Y:%m:%d %H:%M:%S')
+
+#Find the nth position of a character in a string
+def find_nth(char,id, n):
+    start = char.find(id)
+    while start >= 0 and n > 1:
+        start = char.find(id, start+len(id))
+        n -= 1
+    return start
 
 #Create an empty list and store only folders need for analysis
 fpathdirA = []
@@ -18,14 +37,6 @@ for f in range(len(fpathdirA)):
     for i in range(len(fpathfiles)):
            if fpathfiles[i].endswith(".JPG"):
                 files.append(fpathfiles[i])
-
-#Find the nth position of a character in a string
-def find_nth(char,id, n):
-    start = char.find(id)
-    while start >= 0 and n > 1:
-        start = char.find(id, start+len(id))
-        n -= 1
-    return start
 
 #Create a dictionary and store attributes needed to link to camera id
 imgfiles = {'fpath':[],'sid':[],'name':[],'sdate':[],'edate':[]}
@@ -52,6 +63,53 @@ with open( writefile, 'wb') as f:
     writer = csv.writer(f)
     writer.writerow(fieldnames)
     writer.writerows(zip(imgfiles['fpath'],imgfiles['sid'],imgfiles['name'],imgfiles['sdate'],imgfiles['edate']))
+
+
+##Get the full file path of all files for analysis
+##Extract the exif datetime and needed into to idenfify camera id and store in dictionary
+    
+filepath=[]
+for f in range(len(fpathdirA)):
+    fpathfiles = os.listdir(os.path.join(imagedir,fpathdirA[f]))
+    for i in range(len(fpathfiles)):
+           if fpathfiles[i].endswith(".JPG"):
+                filepath.append(os.path.join(imagedir,fpathdirA[f],fpathfiles[i]))
+
+
+imgfiles = {'pathtofile':[],'folder':[],'fpath':[],'sid':[],'name':[],'sdate':[],'edate':[],'fdatetime':[],'nighttime':[]}
+
+#for n in range (len(filepath)):
+for n in range (len(filepath)):
+    p=find_nth(filepath[n],'\\',6)+1
+    fpath = filepath[n][p:len(filepath)]
+    p1 = find_nth(fpath,'_',2)
+    p2 = find_nth(fpath,'_',3)
+    p3 = find_nth(filepath[n],'\\',5)+1
+    folder=filepath[n][p3:p-1]
+    sid = fpath[0:5]
+    name =  fpath[fpath.find('_')+1:p1]
+    sdate = fpath[p1+1:p2]
+    edate = fpath[p2+1:fpath.find(' ')]
+    fdatetime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(filepath[n])))
+    nighttime = int(fdatetime[11:13]) > 4 and int(fdatetime[11:13]) <21
+    imgfiles['fpath'].append(fpath)
+    imgfiles['sid'].append(sid)
+    imgfiles['name'].append(name)
+    imgfiles['sdate'].append(sdate)
+    imgfiles['edate'].append(edate)
+    imgfiles['pathtofile'].append(filepath[n])
+    imgfiles['fdatetime'].append(fdatetime)
+    imgfiles['nighttime'].append(nighttime)
+    imgfiles['folder'].append(folder)
+    
+writefile = 'imgfiles2018_attributeinfo.csv'
+fieldnames = ['pathtofile','folder','fpath','sid', 'name','sdate','edate','fdatetime','nighttime']
+with open( writefile, 'wb') as f:
+    writer = csv.writer(f)
+    writer.writerow(fieldnames)
+    writer.writerows(zip(imgfiles['pathtofile'],imgfiles['folder'],imgfiles['fpath'],imgfiles['sid'],imgfiles['name'],imgfiles['sdate'],imgfiles['edate'],imgfiles['fdatetime'],imgfiles['nighttime']))
+    
+
     
 #datadict = {'fpath':fpath,'sid':sid,'name':name}
 
