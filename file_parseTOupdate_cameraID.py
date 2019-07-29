@@ -29,6 +29,29 @@ fpathdirA = []
 for i in range(len(fpathdir)):
     if len(fpathdir[i]) > 16 and len(fpathdir[i]) > 28:
         fpathdirA.append(fpathdir[i])
+        
+imgfiledir = {'fpathdir':[],'sid':[],'name':[],'sdate':[],'edate':[]}
+for n in range(len(fpathdirA)):
+    fpath = fpathdirA[n]
+    p1 = find_nth(fpath,'_',2)
+    p2 = find_nth(fpath,'_',3)
+    sid = fpath[0:5]
+    name =  fpath[fpath.find('_')+1:p1]
+    sdate = fpath[p1+1:p2]
+    edate = fpath[p2+1:]
+    imgfiledir['fpathdir'].append(fpath)
+    imgfiledir['sid'].append(sid)
+    imgfiledir['name'].append(name)
+    imgfiledir['sdate'].append(sdate)
+    imgfiledir['edate'].append(edate)
+
+#Write imgfiledir dictionary to csv
+writefile = 'imgfiledir2018_attributeinfo.csv'
+fieldnames = ['fpath','sid', 'name','sdate','edate']
+with open( writefile, 'wb') as f:
+    writer = csv.writer(f)
+    writer.writerow(fieldnames)
+    writer.writerows(zip(imgfiledir['fpathdir'],imgfiledir['sid'],imgfiledir['name'],imgfiledir['sdate'],imgfiledir['edate']))
 
 #Create an empty list and store all JPG files in the directory
 files=[]
@@ -78,6 +101,7 @@ for f in range(len(fpathdirA)):
 
 imgfiles = {'pathtofile':[],'folder':[],'fpath':[],'sid':[],'name':[],'sdate':[],'edate':[],'fdatetime':[],'nighttime':[]}
 
+#Par
 #for n in range (len(filepath)):
 for n in range (len(filepath)):
     p=find_nth(filepath[n],'\\',6)+1
