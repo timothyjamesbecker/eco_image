@@ -16,13 +16,16 @@ def update_exif_descrip (path,cid,tag='0th',byte=270):
     piexif.insert(piexif.dump(E),path)
     return True
     
-imagedir = 'P:\\Projects\\2018\\FlowImpair\\TrailCamFlowImageDataPrj\\DataCleaning\\testingpics'
+# imagedir = 'P:\\Projects\\2018\\FlowImpair\\TrailCamFlowImageDataPrj\\DataCleaning\\testingpics'
+imagedir = ''
 
 ##create dictionary to store fpath and cameraid
 fpath_cameraID = {'fpath':[],'cameraid':[]}
 
 #read raw text - 2018 camera ID link to folder
-with open('P:\\Projects\\GitHub_Prj\\eco_image\\data\\cameraID_test.csv','r') as f: raw = f.readlines()
+camera_id_test = 'P:\\Projects\\GitHub_Prj\\eco_image\\data\\cameraID_test.csv'
+# camera_id_test = ''
+with open(camera_id_test,'r') as f: raw = f.readlines()
 
 ## store 2018 data without new file naming convention
 for i in range(len(raw)):

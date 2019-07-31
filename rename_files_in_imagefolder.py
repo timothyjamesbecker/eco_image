@@ -1,50 +1,38 @@
 import os
 import glob
+unix = True
+os_dir_char = ('/' if unix else '\\')
+prefered_ext = 'JPG'
 
-def rename(dir, ftype, titlePattern):
-    for pathAndFilename in glob.iglob(os.path.join(dir, ftype)):
-        title, ext = os.path.splitext(os.path.basename(pathAndFilename))
-        os.rename(pathAndFilename, 
-                  os.path.join(dir, titlePattern % title + ext))
-        
-rename(r'c:\temp\xx', r'*.doc', r'new(%s)')
+imagedir = '/home/mkozlak/Documents/Projects/GitHub/eco_image/data_cleaning/testdata'
+dirs = ['home','mkozlak','Documents','Projects','GitHub','eco_image','data_cleaning','testdata']
+os_dir_char.join(dirs)
 
-imagedir = 'P:\\Projects\\2018\\FlowImpair\\TrailCamFlowImageDataPrj\\DataCleaning\\testingpics'
+#[1] get all valid JPGS that live in a sub dir-------------------------------------
+jpgs = glob.glob(imagedir+'%s*%s*.JPG'%(os_dir_char,os_dir_char))+\
+       glob.glob(imagedir+'%s*%s*.JPEG'%(os_dir_char,os_dir_char))+\
+       glob.glob(imagedir+'%s*%s*.jpg'%(os_dir_char,os_dir_char))+\
+       glob.glob(imagedir+'%s*%s*.jpeg'%(os_dir_char,os_dir_char))
+#[2] associate directories to files
+D = {}
+for jpg in jpgs:
+    dir = os_dir_char.join(jpg.rsplit(os_dir_char)[:-1])+os_dir_char
+    if dir in D: D[dir] += [jpg]
+    else:        D[dir]  = [jpg]
+#[3] rename files
+for dir in D:
+    base = dir.rsplit(os_dir_char)[-2]
+    for i in range(len(D[dir])): #for every jpg in the dir
+        os.rename(D[dir][i],imagedir+os_dir_char+base+os_dir_char+base+'_%s.%s'%(i+1,prefered_ext))
+        print(D[dir][i])
+        print(imagedir+os_dir_char+base+os_dir_char+base+'_%s.%s'%(i+1,prefered_ext))
 
-filelist = []
-
-for i in range(len(os.listdir(imagedir))):
-    dirfolder = os.listdir(imagedir)[i]
-    if os.path.isdir(os.path.join(imagedir,dirfolder)):
-        fpath = os.path.join(imagedir,dirfolder)
-        files = os.listdir(fpath)
-    for n in range(len(files)):
-        if files[n].endswith(".JPG"):
-            filepath = os.path.join(fpath,files[n])
-            filelist.append(filepath)
-        
-for n in range(len(filelist)):
-    filedirectory = os.path.dirname(filelist[n])
-    newfilepath = os.path.dirname(filelist[n])+'\\'+'_'+str(i)+".JPG"
-    os.rename(filelist[n],newfilepath)
-            
-            
-            try:
-                os.rename(filepath,newfilepath)
-            except WindowsError:
-                os.remove(newfilepath)
-                os.rename(filepath,newfilepath)
-
-path =  'P:\\Projects\\2018\\FlowImpair\\TrailCamFlowImageDataPrj\\DataCleaning\\testingpics\\15240_HubbardRiver_040218_040218_44'
-filenames = []
-for i in range(len(os.listdir(path))):
-    if os.listdir(path)[i].endswith(".JPG"):
-        filenames.append(os.path.join(path,os.listdir(path)[i]))
-
-for i in range(len(filenames)):
-    foldername=os.path.basename(os.path.dirname(filenames[0]))
-    newname=os.path.dirname(os.path.dirname(filenames[filename]))
-    os.rename(filename, filename.replace(" ", "-").lower())
+##Might need for windows
+# try:
+#     os.rename(filepath, newfilepath)
+# except WindowsError:
+#     os.remove(newfilepath)
+#     os.rename(filepath, newfilepath)
                 
 
 
