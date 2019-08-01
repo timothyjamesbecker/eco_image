@@ -1,18 +1,24 @@
 import os
 import glob
-unix = True
+unix = False
 os_dir_char = ('/' if unix else '\\')
 prefered_ext = 'JPG'
 
-imagedir = '/home/mkozlak/Documents/Projects/GitHub/eco_image/data_cleaning/testdata'
+imagedir = 'P:\\Projects\\GitHub_Prj\\eco_image\\data_cleaning\\testdata'
 dirs = ['home','mkozlak','Documents','Projects','GitHub','eco_image','data_cleaning','testdata']
 os_dir_char.join(dirs)
 
 #[1] get all valid JPGS that live in a sub dir-------------------------------------
-jpgs = glob.glob(imagedir+'%s*%s*.JPG'%(os_dir_char,os_dir_char))+\
-       glob.glob(imagedir+'%s*%s*.JPEG'%(os_dir_char,os_dir_char))+\
-       glob.glob(imagedir+'%s*%s*.jpg'%(os_dir_char,os_dir_char))+\
-       glob.glob(imagedir+'%s*%s*.jpeg'%(os_dir_char,os_dir_char))
+if unix:
+    jpgs =  glob.glob(imagedir+'%s*%s*.JPG'%(os_dir_char,os_dir_char))+\
+            glob.glob(imagedir+'%s*%s*.JPEG'%(os_dir_char,os_dir_char))+\
+            glob.glob(imagedir+'%s*%s*.jpg'%(os_dir_char,os_dir_char))+\
+            glob.glob(imagedir+'%s*%s*.jpeg'%(os_dir_char,os_dir_char))
+else:
+   jpgs =   glob.glob(imagedir+'%s*%s*.JPG'%(os_dir_char,os_dir_char))+\
+            glob.glob(imagedir+'%s*%s*.JPEG'%(os_dir_char,os_dir_char))
+
+
 #[2] associate directories to files
 D = {}
 for jpg in jpgs:
