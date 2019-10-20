@@ -11,7 +11,7 @@ import utils
 
 des="""
 ---------------------------------------------------
-Bottom-Center Priority Image Crop/Resize Crawler
+Bottom-Center Priority Image Crop/Resize Crawler DBO
 Timothy James Becker 12-18-2018
 ---------------------------------------------------"""
 parser = argparse.ArgumentParser(description=des.lstrip(" "),formatter_class=argparse.RawTextHelpFormatter)

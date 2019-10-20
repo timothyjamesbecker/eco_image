@@ -7,22 +7,29 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def local_path():
-    return os.path.abspath(__file__).replace('utils.py','').replace('utils.pyc','')
+    return '/'.join(os.path.abspath(__file__).split('/')[:-1])+'/'
 
 #given an image file with exif metadat return set of the tags that are required
-def get_exif_tags(path,tag_set='all'):
+def read_exif_tags(path,tag_set='all'):
     tags,T = {},{}
     with open(path,'rb') as f: tags = exifread.process_file(f)
-    if tag_set=='all': tag_set = set(tags.keys())
-    for t in tags:
-        if t in tag_set: T[t] = str(tags[t].values.rstrip(' '))
+    if tag_set=='all': tag_set = set(list(tags.keys()))
+    for t in sorted(list(tags.keys())):
+        if t in tag_set and type(tags[t]) is not str:
+            tag_value = tags[t].values
+            if type(tag_value) is list: tag_value = ','.join([str(v) for v in tag_value])
+            if type(tag_value) is str: tag_value = tag_value.rstrip(' ')
+            T[t] = str(tag_value)
     return T
+
+def set_exif_tags(path,tag_set):
+    return True
 
 def get_camera_seg_mult(camera_type):
     if camera_type.upper().startswith('MOULTRIE'):
         offset = 0.10
     elif camera_type.upper().startswith('BUSHNELL'):
-        offset = 0.9
+        offset = 0.925
     elif camera_type.upper().startswith('SPYPOINT'):
         offset = 0.75
     else:
@@ -30,7 +37,7 @@ def get_camera_seg_mult(camera_type):
     return offset
 
 #uses the
-def get_seg_line(img,low=50,high=150,average=True,mult=0.8,vertical=False):
+def get_seg_line(img,low=50,high=100,average=True,mult=0.8,vertical=False):
     seg = [0,0,0,0]
     edges = cv2.Canny(img,low,high,apertureSize=3)
     lines = cv2.HoughLines(edges,1,np.pi/180,200)
@@ -90,3 +97,6 @@ def blob2img(blob):
 
 def img2blob(img):
     return cv2.imencode('.jpg',img)[1].tostring()
+
+def imgs2pickle(imgs):
+    return True

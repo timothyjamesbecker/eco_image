@@ -32,7 +32,7 @@ def collect_results(result):
 def map_cameras_to_sid(sid_images,sid,tag_set):
     S = {sid:{}}
     for path in sid_images:
-        T = utils.get_exif_tags(path,tag_set)
+        T = utils.read_exif_tags(path,tag_set)
         v = tuple(T[t] for t in sorted(T.keys()))
         if S[sid].has_key(v): S[sid][v] += 1
         else:                 S[sid][v]  = 1
