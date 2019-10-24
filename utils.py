@@ -137,18 +137,34 @@ def load_data_simple(in_dir,gray_scale=True,split=0.15):
 
 #advanced data loader splits with at least one site that is unseen...
 #must have a minimum of two sites per label in order to train/test
-def load_data_advanced(in_dir,gray_scale=True,split=0.15,verbose=True):
-    L = {}
+def load_data_advanced(in_dir,gray_scale=True,split=0.15,enforce_test_label=True,verbose=True):
+    L,C,ls = {},{},set([])
     paths = sorted(glob.glob(in_dir+'/*/*.jpg')+glob.glob(in_dir+'/*/*.JPG'))
     for i in range(len(paths)):
         sid   = int(paths[i].rsplit('/')[-1].rsplit('_')[0])
         label = int(paths[i].rsplit('label_')[-1].rsplit('/')[0])
         if sid in L: L[sid] += [[i,label]]
         else:        L[sid]  = [[i,label]]
-    trn_data,trn_labels,tst_data,tst_labels = [],[],[],[]
-    ts   = max(1,round(len(L)*split))
+        if sid in C: C[sid] += [label]
+        else:        C[sid]  = [label]
+        ls.add(label)
+    trn_data,trn_labels,trn_paths,tst_data,tst_labels,tst_paths = [],[],[],[],[],[]
     sids = list(L.keys())
-    test_sidx  = sorted(list(np.random.choice(sids,ts)))
+    if enforce_test_label:
+        idxs = []
+        for i in C:
+            if set(C[i])==ls: idxs += [i]
+        if len(idxs)<1:
+            print("can not enforce test label selection, accuracy measurements will not be accurate....")
+            ts = max(1,round(len(L)*split))
+            test_sidx  = sorted(list(np.random.choice(sids,ts)))
+        else:
+            ts = max(1,round(len(idxs)*split))
+            test_sidx = sorted(list(np.random.choice(idxs,ts)))
+    else:
+        ts = max(1,round(len(L)*split))
+        test_sidx = sorted(list(np.random.choice(sids,ts)))
+
     train_sidx = sorted(list(set(sids).difference(set(test_sidx))))
     if verbose: print('sids %s selected for test cases'%(','.join([str(x) for x in test_sidx])))
     if gray_scale:
@@ -156,10 +172,12 @@ def load_data_advanced(in_dir,gray_scale=True,split=0.15,verbose=True):
             for [i,label] in L[sid]:
                 tst_labels  += [label]
                 tst_data    += [cv2.imread(paths[i],cv2.IMREAD_GRAYSCALE)]
+                tst_paths   += [paths[i]]
         for sid in train_sidx:
             for [i,label] in L[sid]:
                 trn_labels += [label]
                 trn_data   += [cv2.imread(paths[i],cv2.IMREAD_GRAYSCALE)]
+                trn_paths  += [paths[i]]
         (h,w) = trn_data[0].shape
         train_labels = np.asarray(trn_labels,dtype='uint8')
         test_labels  = np.asarray(tst_labels,dtype='uint8')
@@ -172,10 +190,12 @@ def load_data_advanced(in_dir,gray_scale=True,split=0.15,verbose=True):
             for [i,label] in L[sid]:
                 tst_labels  += [label]
                 tst_data    += [cv2.imread(paths[i])]
+                tst_paths   += [paths[i]]
         for sid in train_sidx:
             for [i,label] in L[sid]:
                 trn_labels += [label]
                 trn_data   += [cv2.imread(paths[i])]
+                trn_paths  += [paths[i]]
         (h,w,c) = trn_data[0].shape
         train_labels = np.asarray(trn_labels,dtype='uint8')
         test_labels  = np.asarray(tst_labels,dtype='uint8')
@@ -183,4 +203,29 @@ def load_data_advanced(in_dir,gray_scale=True,split=0.15,verbose=True):
         test_data    = np.ndarray((len(tst_data),h,w,c),dtype='uint8')
         for i in range(len(train_data)): train_data[i,:,:,:] = trn_data[i]
         for i in range(len(test_data)):  test_data[i,:,:,:]  = tst_data[i]
-    return (train_data,train_labels),(test_data,test_labels)
+    return (train_data,train_labels,trn_paths),(test_data,test_labels,tst_paths)
+
+#only interested in when the labels don't match...
+def confusion_matrix(pred_labels,test_labels,test_data=None,test_paths=None,copy_error_dir=None,normalize=True):
+    M,n = {},0.0
+    for i in test_labels:
+        for j in pred_labels:
+            M[(i,j)] = 0.0
+    for i in range(len(test_labels)):
+        if pred_labels[i] != test_labels[i]:
+            M[(test_labels[i],pred_labels[i])] += 1.0
+            n += 1
+            if copy_error_dir is not None and test_data is not None and test_paths is not None:
+                out_path = copy_error_dir+'/%s_%s/'%(test_labels[i],pred_labels[i])
+                if not os.path.exists(out_path): os.mkdir(out_path)
+                base = test_paths.rsplit('/')[-1]
+                cv2.imwrite(out_path+base,test_data[i])
+    if normalize:
+        for i,j in M: M[(i,j)] /= n
+    return M
+
+
+
+
+
+    return M
