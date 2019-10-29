@@ -17,10 +17,11 @@ def read_exif_tags(path,tag_set='all'):
     if tag_set=='all': tag_set = set(list(tags.keys()))
     for t in sorted(list(tags.keys())):
         if t in tag_set and type(tags[t]) is not str:
-            tag_value = tags[t].values
-            if type(tag_value) is list: tag_value = ','.join([str(v) for v in tag_value])
-            if type(tag_value) is str: tag_value = tag_value.rstrip(' ')
-            T[t] = str(tag_value)
+            if type(tags[t]) is not bytes:
+                tag_value = tags[t].values
+                if type(tag_value) is list: tag_value = ','.join([str(v) for v in tag_value])
+                if type(tag_value) is str: tag_value = tag_value.rstrip(' ')
+                T[t] = str(tag_value)
     return T
 
 def set_exif_tags(path,tag_set):
@@ -114,10 +115,10 @@ def load_data_simple(in_dir,gray_scale=True,split=0.15):
         train_idx = np.asarray(sorted(list(set(range(len(data))).difference(set(list(test_idx))))))
         test_labels  = np.asarray(labels, dtype='uint8')[test_idx]
         train_labels = np.asarray(labels, dtype='uint8')[train_idx]
-        test_data    = np.ndarray(shape=(len(test_idx),h,w),dtype='uint8')
-        train_data   = np.ndarray(shape=(len(train_idx),h,w),dtype='uint8')
-        for i in range(len(test_data)): test_data[i,:,:]  = data[test_idx[i]]
-        for i in range(len(train_data)):train_data[i,:,:] = data[train_idx[i]]
+        test_data    = np.ndarray(shape=(len(test_idx),h,w,1),dtype='uint8')
+        train_data   = np.ndarray(shape=(len(train_idx),h,w,1),dtype='uint8')
+        for i in range(len(test_data)): test_data[i,:,:,0]  = data[test_idx[i]]
+        for i in range(len(train_data)):train_data[i,:,:,0] = data[train_idx[i]]
     else:
         for path in sorted(glob.glob(in_dir+'/*/*.jpg')+glob.glob(in_dir+'/*/*.JPG')):
             labels += [int(path.rsplit('label_')[-1].rsplit('/')[0])]
@@ -181,10 +182,10 @@ def load_data_advanced(in_dir,gray_scale=True,split=0.15,enforce_test_label=True
         (h,w) = trn_data[0].shape
         train_labels = np.asarray(trn_labels,dtype='uint8')
         test_labels  = np.asarray(tst_labels,dtype='uint8')
-        train_data   = np.ndarray((len(trn_data),h,w),dtype='uint8')
-        test_data    = np.ndarray((len(tst_data),h,w),dtype='uint8')
-        for i in range(len(train_data)): train_data[i,:,:] = trn_data[i]
-        for i in range(len(test_data)):  test_data[i,:,:]  = tst_data[i]
+        train_data   = np.ndarray((len(trn_data),h,w,1),dtype='uint8')
+        test_data    = np.ndarray((len(tst_data),h,w,1),dtype='uint8')
+        for i in range(len(train_data)): train_data[i,:,:,0] = trn_data[i]
+        for i in range(len(test_data)):  test_data[i,:,:,0]  = tst_data[i]
     else:
         for sid in test_sidx:
             for [i,label] in L[sid]:
@@ -205,9 +206,87 @@ def load_data_advanced(in_dir,gray_scale=True,split=0.15,enforce_test_label=True
         for i in range(len(test_data)):  test_data[i,:,:,:]  = tst_data[i]
     return (train_data,train_labels,trn_paths),(test_data,test_labels,tst_paths)
 
+def partition_data_paths(in_dir,split=0.15,enforce_test_label=True,verbose=True):
+    L,C,ls = {},{},set([])
+    paths = sorted(glob.glob(in_dir+'/*/*.jpg')+glob.glob(in_dir+'/*/*.JPG'))
+    for i in range(len(paths)):
+        sid   = int(paths[i].rsplit('/')[-1].rsplit('_')[0])
+        #sid  += '_'+'_'.join(paths[i].rsplit('/')[-1].rsplit(' ')[0].rsplit('_')[2:])
+        label = int(paths[i].rsplit('label_')[-1].rsplit('/')[0])
+        if sid in L: L[sid] += [[i,label]]
+        else:        L[sid]  = [[i,label]]
+        if sid in C: C[sid] += [label]
+        else:        C[sid]  = [label]
+        ls.add(label)
+    trn_paths,tst_paths = [],[]
+    sids = list(L.keys())
+    if enforce_test_label:
+        idxs = []
+        for i in C:
+            if set(C[i])==ls: idxs += [i]
+        if len(idxs)<1:
+            print("can not enforce test label selection, accuracy measurements will not be accurate....")
+            ts = max(1,round(len(L)*split))
+            test_sidx  = sorted(list(np.random.choice(sids,ts)))
+        else:
+            ts = max(1,round(len(idxs)*split))
+            test_sidx = sorted(list(np.random.choice(idxs,ts)))
+    else:
+        ts = max(1,round(len(L)*split))
+        test_sidx = sorted(list(np.random.choice(sids,ts)))
+    train_sidx = sorted(list(set(sids).difference(set(test_sidx))))
+    if verbose: print('sids %s selected for test cases'%(','.join([str(x) for x in test_sidx])))
+    for sid in test_sidx:
+        for [i,label] in L[sid]:
+            tst_paths   += [paths[i]]
+    for sid in train_sidx:
+        for [i,label] in L[sid]:
+            trn_paths  += [paths[i]]
+    return trn_paths,tst_paths
+
+def load_data_generator(paths,batch_size=64,gray_scale=True,norm=True,offset=-1):
+    while True:
+        data,labels,l = [],[],len(paths)
+        idx = np.random.choice(range(l),size=min(batch_size,l),replace=False)
+        if gray_scale:
+            for i in idx:
+                labels += [int(paths[i].rsplit('label_')[-1].rsplit('/')[0])+offset]
+                data   += [cv2.imread(paths[i],cv2.IMREAD_GRAYSCALE)]
+            y = np.asarray(labels,dtype='uint8')
+            (h,w) = data[0].shape
+            x = np.ndarray((batch_size,h,w,1),dtype='uint8')
+            for i in range(batch_size): x[i,:,:,0] = data[i]
+        else:
+            for i in idx:
+                labels += [int(paths[i].rsplit('label_')[-1].rsplit('/')[0])+offset]
+                data   += [cv2.imread(paths[i])]
+            y = np.asarray(labels,dtype='uint8')
+            (h,w,c) = data[0].shape
+            x = np.ndarray((batch_size,h,w,c),dtype='uint8')
+            for i in range(batch_size): x[i,:,:,:] = data[i]
+        if norm: x = x/255.0
+        yield(x,y)
+
+def get_shapes(paths,gray_scale=True):
+    if gray_scale:
+        ss = [tuple(list(cv2.imread(path,cv2.IMREAD_GRAYSCALE).shape)+[1]) for path in paths]
+    else:
+        ss = [cv2.imread(path).shape for path in paths]
+    return list(set(ss))
+
+def get_labels(paths,offset=-1):
+    labels = []
+    for path in paths:
+        labels += [int(path.rsplit('label_')[-1].rsplit('/')[0])+offset]
+    labels = np.asarray(labels,dtype='uint8')
+    return labels
+
 #only interested in when the labels don't match...
-def confusion_matrix(pred_labels,test_labels,test_data=None,test_paths=None,copy_error_dir=None,normalize=True):
-    M,n = {},0.0
+def confusion_matrix(pred_labels,test_labels,
+                     test_data=None,test_paths=None,
+                     copy_error_dir=None,normalize=True,
+                     print_result=False):
+    M,m,n = {},set([]),0.0
     for i in test_labels:
         for j in pred_labels:
             M[(i,j)] = 0.0
@@ -222,10 +301,11 @@ def confusion_matrix(pred_labels,test_labels,test_data=None,test_paths=None,copy
                 cv2.imwrite(out_path+base,test_data[i])
     if normalize:
         for i,j in M: M[(i,j)] /= n
-    return M
-
-
-
-
-
+    if print_result:
+        ixs = {}
+        for i,j in sorted(M,key=lambda x: (x[0],x[1])):
+            if i in ixs: ixs[i] += [(i,j)]
+            else:        ixs[i]  = [(i,j)]
+        for i in ixs:
+            print('\t'.join(['%s:%s'%(c,round(M[c],2)) for c in ixs[i]]))
     return M
