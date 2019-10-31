@@ -206,21 +206,23 @@ def load_data_advanced(in_dir,gray_scale=True,split=0.15,enforce_test_label=True
         for i in range(len(test_data)):  test_data[i,:,:,:]  = tst_data[i]
     return (train_data,train_labels,trn_paths),(test_data,test_labels,tst_paths)
 
-def partition_data_paths(in_dir,split=0.15,enforce_test_label=True,verbose=True):
-    L,C,ls = {},{},set([])
+def partition_data_paths(in_dir,split=0.15,enforce_test_site=False,verbose=True):
+    L,C,LC,ls = {},{},{},set([])
     paths = sorted(glob.glob(in_dir+'/*/*.jpg')+glob.glob(in_dir+'/*/*.JPG'))
     for i in range(len(paths)):
         sid   = int(paths[i].rsplit('/')[-1].rsplit('_')[0])
-        #sid  += '_'+'_'.join(paths[i].rsplit('/')[-1].rsplit(' ')[0].rsplit('_')[2:])
         label = int(paths[i].rsplit('label_')[-1].rsplit('/')[0])
-        if sid in L: L[sid] += [[i,label]]
-        else:        L[sid]  = [[i,label]]
-        if sid in C: C[sid] += [label]
-        else:        C[sid]  = [label]
+        if sid in L:       L[sid] += [[i,label]]
+        else:              L[sid]  = [[i,label]]
+        if sid in C:       C[sid] += [label]
+        else:              C[sid]  = [label]
+        if label in LC: LC[label] += [sid]
+        else:           LC[label]  = [sid]
         ls.add(label)
+    for l in LC: LC[l] = sorted(list(set(LC[l])))
     trn_paths,tst_paths = [],[]
     sids = list(L.keys())
-    if enforce_test_label:
+    if enforce_test_site: #makes a strict site holdout good to estimate overall performance on a new site
         idxs = []
         for i in C:
             if set(C[i])==ls: idxs += [i]
@@ -231,17 +233,28 @@ def partition_data_paths(in_dir,split=0.15,enforce_test_label=True,verbose=True)
         else:
             ts = max(1,round(len(idxs)*split))
             test_sidx = sorted(list(np.random.choice(idxs,ts)))
-    else:
-        ts = max(1,round(len(L)*split))
-        test_sidx = sorted(list(np.random.choice(sids,ts)))
-    train_sidx = sorted(list(set(sids).difference(set(test_sidx))))
-    if verbose: print('sids %s selected for test cases'%(','.join([str(x) for x in test_sidx])))
-    for sid in test_sidx:
-        for [i,label] in L[sid]:
-            tst_paths   += [paths[i]]
-    for sid in train_sidx:
-        for [i,label] in L[sid]:
-            trn_paths  += [paths[i]]
+        train_sidx = sorted(list(set(sids).difference(set(test_sidx))))
+        if verbose: print('sids %s selected for test cases'%(','.join([str(x) for x in test_sidx])))
+        for sid in test_sidx:
+            for [i,label] in L[sid]:
+                tst_paths   += [paths[i]]
+        for sid in train_sidx:
+            for [i,label] in L[sid]:
+                trn_paths  += [paths[i]]
+    else: #take away split*(total_number of sites per label), makes a good estimate of classification confusion
+        tst_paths,trn_paths = [],[]
+        for l in LC:
+            ts = max(1,round(len(LC[l])*split))
+            test_sidx  = sorted(list(np.random.choice(LC[l],ts)))
+            train_sidx = sorted(list(set(sids).difference(set(test_sidx))))
+            for sid in test_sidx:
+                for [i,label] in L[sid]:
+                    tst_paths   += [paths[i]]
+            for sid in train_sidx:
+                for [i,label] in L[sid]:
+                    trn_paths  += [paths[i]]
+        trn_paths = sorted(list(set(trn_paths)))
+        tst_paths = sorted(list(set(tst_paths)))
     return trn_paths,tst_paths
 
 def load_data_generator(paths,batch_size=64,gray_scale=True,norm=True,offset=-1):
