@@ -6,13 +6,7 @@ warnings.simplefilter(action='ignore', category=Warning)
 import time
 import argparse
 import numpy as np
-import tensorflow as tf
-from tensorflow import keras
 import utils
-
-config = tf.ConfigProto()
-config.gpu_options.allow_growth = True
-session = tf.Session(config=config)
 
 des="""
 ---------------------------------------------------
@@ -42,6 +36,7 @@ else:
     raise IOError
 if args.out_dir is not None:
     out_dir = args.out_dir
+    if not os.path.exists(out_dir): os.mkdir(out_dir)
 else:
     raise IOError
 if args.classes is not None:
@@ -72,6 +67,12 @@ for i in range(len(epochs)):          #epochs
             x += 1
 train_paths,test_paths = utils.partition_data_paths(in_dir,split=split,verbose=False)
 shapes = utils.get_shapes(train_paths,gray_scale=gray_scale)
+
+import tensorflow as tf
+from tensorflow import keras
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+session = tf.Session(config=config)
 
 t_start = time.time()
 H,CM = {},{}
