@@ -242,7 +242,7 @@ def partition_data_paths(in_dir,split=0.15,enforce_test_site=False,verbose=True)
             for [i,label] in L[sid]:
                 trn_paths  += [paths[i]]
     else: #take away split*(total_number of sites per label), makes a good estimate of classification confusion
-        tst_paths,trn_paths = [],[]
+        tst_paths,trn_paths,T = [],[],{}
         for l in LC:
             ts = max(1,round(len(LC[l])*split))
             test_sidx  = sorted(list(np.random.choice(LC[l],ts)))
@@ -253,8 +253,12 @@ def partition_data_paths(in_dir,split=0.15,enforce_test_site=False,verbose=True)
             for sid in train_sidx:
                 for [i,label] in L[sid]:
                     trn_paths  += [paths[i]]
+            T[l] = test_sidx
         trn_paths = sorted(list(set(trn_paths)))
         tst_paths = sorted(list(set(tst_paths)))
+        if verbose:
+            print('test sites randomly selected were:\n'+
+                  '\n'.join(['%s:\t'%l+','.join([str(i) for i in T[l]]) for l in sorted(list(T.keys()))]))
     return trn_paths,tst_paths
 
 def load_data_generator(paths,batch_size=64,gray_scale=True,norm=True,offset=-1):
@@ -295,10 +299,8 @@ def get_labels(paths,offset=-1):
     return labels
 
 #only interested in when the labels don't match...
-def confusion_matrix(pred_labels,test_labels,
-                     test_data=None,test_paths=None,
-                     copy_error_dir=None,normalize=True,
-                     print_result=False):
+def confusion_matrix(pred_labels,test_labels,test_data=None,test_paths=None,
+                     copy_error_dir=None,normalize=False,print_result=False,offset=1):
     M,m,n = {},set([]),0.0
     for i in test_labels:
         for j in pred_labels:
@@ -315,10 +317,46 @@ def confusion_matrix(pred_labels,test_labels,
     if normalize:
         for i,j in M: M[(i,j)] /= n
     if print_result:
+        #total errors versus total correct
         ixs = {}
         for i,j in sorted(M,key=lambda x: (x[0],x[1])):
             if i in ixs: ixs[i] += [(i,j)]
             else:        ixs[i]  = [(i,j)]
         for i in ixs:
-            print('\t'.join(['%s:%s'%(c,round(M[c],2)) for c in ixs[i]]))
+            print('\t'.join(['%s:%s'%((c[0]+offset,c[1]+offset),round(M[c],2)) for c in ixs[i]]))
     return M
+
+def plot_train_test(history,title='Model ACC+LOSS',ylim=[0.0,1.0],out_path=None):
+    plt.plot(history['acc'])
+    plt.plot(history['val_acc'])
+    plt.plot(history['loss'])
+    plt.plot(history['val_loss'])
+    axes = plt.gca()
+    axes.set_ylim(ylim)
+    plt.title(title)
+    plt.ylabel('Accuracy & Loss Value')
+    plt.xlabel('Epoch')
+    plt.legend(['TRN-ACC','TST-ACC','TRN-LOSS','TST-LOSS'], loc='lower left')
+    if out_path is not None: plt.savefig(out_path); plt.close()
+    else: plt.show()
+    return True
+
+def plot_confusion_heatmap(confusion_matrix,title,offset=1,out_path=None):
+    xs = set([])
+    for i,j in confusion_matrix:
+        xs.add(i+offset)
+        xs.add(j+offset)
+    sx = sorted(list(xs))
+    h = np.zeros((len(sx),len(sx)),dtype=float)
+    for i,j in confusion_matrix:
+        h[i,j] = confusion_matrix[(i,j)]
+    plt.imshow(h,cmap='Greys')
+    plt.xticks(range(len(sx)),sx)
+    plt.yticks(range(len(sx)),sx)
+    plt.title(title)
+    plt.ylabel('Test Class')
+    plt.xlabel('Pred Class')
+    plt.colorbar()
+    if out_path is not None: plt.savefig(out_path); plt.close()
+    else: plt.show()
+    return True
