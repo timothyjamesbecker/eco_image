@@ -251,16 +251,17 @@ def partition_data_paths(in_dir,split=0.15,enforce_test_site=False,verbose=True)
             train_sidx = sorted(list(set(sids).difference(set(test_sidx))))
             for sid in test_sidx:
                 for [i,label] in L[sid]:
-                    tst_paths   += [paths[i]]
+                    if label == l: tst_paths   += [paths[i]]
             for sid in train_sidx:
                 for [i,label] in L[sid]:
-                    trn_paths  += [paths[i]]
+                    if label == l: trn_paths  += [paths[i]]
             T[l] = test_sidx
         trn_paths = sorted(list(set(trn_paths)))
         tst_paths = sorted(list(set(tst_paths)))
         if verbose:
             print('test sites randomly selected were:\n'+
                   '\n'.join(['%s:\t'%l+','.join([str(i) for i in T[l]]) for l in sorted(list(T.keys()))]))
+            print(' in total: %s test images with %s training images'%(len(tst_paths),len(trn_paths)))
     return trn_paths,tst_paths
 
 def load_data_generator(paths,batch_size=64,gray_scale=True,norm=True,offset=-1):
