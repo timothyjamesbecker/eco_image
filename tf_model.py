@@ -11,7 +11,7 @@ import utils
 des="""
 ---------------------------------------------------
 TensorFlow/Keras based hyper-param modeler
-Timothy James Becker 11-04-19
+Timothy James Becker 11-04-19 to 11-10-19
 ---------------------------------------------------
 Given input directory with partitioned labels with images inside:
 in_dir/label_1, in_dir/label_2, ...
@@ -26,6 +26,7 @@ parser.add_argument('--gray_scale',action='store_true',help='convert to grayscal
 parser.add_argument('--split',type=float,help='0.0 to 1.0 proportion of training data to use for full hold-out\t[0.25]')
 parser.add_argument('--decay',type=float,help='0.0 to 1.0 amount of L2 weight regularization decay\t[0.001]')
 parser.add_argument('--batch_norm',action='store_true',help='use batch normalization \t[False]')
+parser.add_argument('--w_reg',action='store_true',help='use weight regularization \t[False]')
 parser.add_argument('--data_aug',action='store_true',help='employ data augmentation\t[False]')
 parser.add_argument('--hyper',type=str,help='semi-colon then comma seperated hyper parameter search cmx;batch_size,epochs\t[8;8;10]')
 args = parser.parse_args()
@@ -55,9 +56,10 @@ if args.hyper is not None:
     [cmx,batch_size,epochs] = [[int(y) for y in x.split(',')] for x in args.hyper.split(';')]
 else:
     cmx,batch_size,epochs = [8],[8],[10]
-batch_norm = args.batch_norm
+batch_norm        = args.batch_norm
+w_reg             = args.w_reg
 data_augmentation = args.data_aug
-gray_scale = args.gray_scale
+gray_scale        = args.gray_scale
 
 X,x = {},0
 for i in range(len(epochs)):          #epochs
@@ -81,7 +83,30 @@ for i in range(len(X)):
     start = time.time()
     if not batch_norm:
         print('batch normalization not being used...')
-        model = keras.Sequential([
+        if not w_reg:
+            print('weight regularization not being used...')
+            model = keras.Sequential([
+                keras.layers.Conv2D(X[i]['cmx'], (5, 5), activation='relu',
+                                    input_shape=shapes[0]),
+                keras.layers.MaxPooling2D((2, 2)),
+                keras.layers.Conv2D(X[i]['cmx'], (3, 3), activation='relu'),
+                keras.layers.MaxPooling2D((2, 2)),
+                keras.layers.Dropout(0.25),
+                keras.layers.Conv2D(2*X[i]['cmx'], (3, 3), activation='relu'),
+                keras.layers.MaxPooling2D((2, 2)),
+                keras.layers.Dropout(0.25),
+                keras.layers.Conv2D(2*X[i]['cmx'], (3, 3), activation='relu'),
+                keras.layers.MaxPooling2D((2, 2)),
+                keras.layers.Dropout(0.25),
+                keras.layers.Conv2D(4*X[i]['cmx'], (3, 3), activation='relu'),
+                keras.layers.Flatten(),
+                keras.layers.Dense(8 * X[i]['cmx'], activation='relu'),
+                keras.layers.Dropout(0.5),
+                keras.layers.Dense(classes, activation='softmax')
+            ])
+        else:
+            print('weight regularization being used...')
+            model = keras.Sequential([
                 keras.layers.Conv2D(X[i]['cmx'],(5,5),activation='relu',
                                     input_shape=shapes[0],
                                     kernel_regularizer=keras.regularizers.l2(l=decay)),
@@ -108,7 +133,40 @@ for i in range(len(X)):
             ])
     else:
         print('batch normalization being used...')
-        model = keras.Sequential([
+        if not w_reg:
+            print('weight regularization not being used...')
+            model = keras.Sequential([
+                keras.layers.Conv2D(X[i]['cmx'], (5, 5), activation='relu',
+                                    input_shape=shapes[0]),
+                keras.layers.MaxPooling2D((2, 2)),
+                keras.layers.Conv2D(X[i]['cmx'], (3, 3), use_bias=False),
+                keras.layers.BatchNormalization(),
+                keras.layers.Activation('relu'),
+                keras.layers.MaxPooling2D((2, 2)),
+                keras.layers.Dropout(0.25),
+                keras.layers.Conv2D(2*X[i]['cmx'], (3, 3), use_bias=False),
+                keras.layers.BatchNormalization(),
+                keras.layers.Activation('relu'),
+                keras.layers.MaxPooling2D((2, 2)),
+                keras.layers.Dropout(0.25),
+                keras.layers.Conv2D(2*X[i]['cmx'], (3, 3), use_bias=False),
+                keras.layers.BatchNormalization(),
+                keras.layers.Activation('relu'),
+                keras.layers.MaxPooling2D((2, 2)),
+                keras.layers.Dropout(0.25),
+                keras.layers.Conv2D(4*X[i]['cmx'], (3, 3), use_bias=False),
+                keras.layers.BatchNormalization(),
+                keras.layers.Activation('relu'),
+                keras.layers.Flatten(),
+                keras.layers.Dense(8*X[i]['cmx'], use_bias=False),
+                keras.layers.BatchNormalization(),
+                keras.layers.Activation('relu'),
+                keras.layers.Dropout(0.5),
+                keras.layers.Dense(classes, activation='softmax')
+            ])
+        else:
+            print('weight regularization being used...')
+            model = keras.Sequential([
                 keras.layers.Conv2D(X[i]['cmx'],(5,5),activation='relu',
                                     input_shape=shapes[0],
                                     kernel_regularizer=keras.regularizers.l2(l=decay)),
