@@ -30,6 +30,7 @@ parser.add_argument('--balance',type=float,help='1.0 to 10.0 amount of inter-cla
 parser.add_argument('--batch_norm',action='store_true',help='use batch normalization \t[False]')
 parser.add_argument('--w_reg',action='store_true',help='use weight regularization \t[False]')
 parser.add_argument('--data_aug',action='store_true',help='employ data augmentation\t[False]')
+parser.add_argument('--aug_workers',type=int,help='number of data augmentation worker threads\t[1]')
 parser.add_argument('--hyper',type=str,help='semi-colon then comma seperated hyper parameter search cmx;batch_size,epochs\t[8;8;10]')
 args = parser.parse_args()
 
@@ -65,6 +66,10 @@ if args.balance is not None:
     balance = args.balance
 else:
     balance = 1.0
+if args.aug_workers is not None:
+    aug_workers = args.aug_workers
+else:
+    aug_workers = 1
 if args.hyper is not None:
     [cmx,batch_size,epochs] = [[int(y) for y in x.split(',')] for x in args.hyper.split(';')]
 else:
@@ -268,7 +273,7 @@ for i in range(len(X)):
 
         #redefine the train_geneartor to load all data into main memory to augment
         if data is None and labels is None:
-            print('reading training data...')
+            print('reading full training data into RAM...')
             train_generator = utils.load_data_generator(train_paths,class_idx,
                                                         batch_size=len(train_paths),
                                                         gray_scale=gray_scale)
@@ -282,7 +287,7 @@ for i in range(len(X)):
                                 epochs=X[i]['epochs'],
                                 validation_data=test_generator,
                                 validation_steps=len(test_paths)//X[i]['batch_size'],
-                                verbose=0,workers=1)
+                                verbose=0,workers=aug_workers)
     stop = time.time()
     pred,true = [],[]
     for p in range(len(test_paths)//X[i]['batch_size']+(1 if len(test_paths)%X[i]['batch_size']>0 else 0)):

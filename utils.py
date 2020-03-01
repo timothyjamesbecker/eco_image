@@ -362,14 +362,14 @@ def metrics(M,offset=1):
         else:                           F1[l+offset] = 0.0
     return P,R,F1
 
-def plot_train_test(history,title='Model ACC+LOSS',ylim=[0.0,1.0],out_path=None):
+def plot_train_test(history,title='Model ACC+LOSS',ylim=[0.0,1.0],out_path=None,fontsize=8):
     plt.plot(history['accuracy'])
     plt.plot(history['val_accuracy'])
     plt.plot(history['loss'])
     plt.plot(history['val_loss'])
     axes = plt.gca()
     axes.set_ylim(ylim)
-    plt.title(title)
+    plt.title(title,fontsize=fontsize)
     plt.ylabel('Accuracy & Loss Value')
     plt.xlabel('Epoch')
     plt.legend(['TRN-ACC','TST-ACC','TRN-LOSS','TST-LOSS'], loc='lower left')
@@ -377,7 +377,7 @@ def plot_train_test(history,title='Model ACC+LOSS',ylim=[0.0,1.0],out_path=None)
     else: plt.show()
     return True
 
-def plot_confusion_heatmap(confusion_matrix,title,offset=1,out_path=None):
+def plot_confusion_heatmap(confusion_matrix,title,offset=1,out_path=None,fontsize=8):
     xs = set([])
     for i,j in confusion_matrix:
         xs.add(i+offset)
@@ -389,7 +389,7 @@ def plot_confusion_heatmap(confusion_matrix,title,offset=1,out_path=None):
     plt.imshow(h,cmap='Greys')
     plt.xticks(range(len(sx)),sx)
     plt.yticks(range(len(sx)),sx)
-    plt.title(title)
+    plt.title(title,fontsize=fontsize)
     plt.ylabel('Test Class')
     plt.xlabel('Pred Class')
     plt.colorbar()
