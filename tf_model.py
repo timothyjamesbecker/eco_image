@@ -100,6 +100,9 @@ H,CM,S,best_score = {},{},{},0.0
 data,labels = None,None
 for i in range(len(X)):
     S['params'] = X[i]
+    S['params']['wreg'] = w_reg
+    S['params']['data_augmentation'] = data_augmentation
+    S['params']['gray_scale'] = gray_scale
     print('\nstarting iteration %s : params %s'%(i+1,X[i]))
     start = time.time()
     if not batch_norm:
@@ -279,7 +282,7 @@ for i in range(len(X)):
                                 epochs=X[i]['epochs'],
                                 validation_data=test_generator,
                                 validation_steps=len(test_paths)//X[i]['batch_size'],
-                                verbose=0)
+                                verbose=0,workers=1)
     stop = time.time()
     pred,true = [],[]
     for p in range(len(test_paths)//X[i]['batch_size']+(1 if len(test_paths)%X[i]['batch_size']>0 else 0)):
@@ -292,15 +295,18 @@ for i in range(len(X)):
     print('%s Measured CNN accuracy for %s classes using %s test images'%(run_score,classes,len(pred)))
     pred,true = [],[]
     S['score'] = run_score
+    class_partition = '_'.join(['-'.join([str(x) for x in class_labels[c]]) for c in class_labels])
     shps      = '%sx%sx%s'%(shapes[0][0],shapes[0][1],shapes[0][2])
-    title     = 'cmx=%s batch=%s gray=%s in:%s'%(X[i]['cmx'],X[i]['batch_size'],gray_scale,shps)
-    plt_path  = 'cmx_%s-batch_%s-gray_%s-in_%s'%(X[i]['cmx'],X[i]['batch_size'],gray_scale,shps)
+    title     = 'class=%s cmx=%s batch=%s wreg=%s aug=%s gray=%s in:%s'%\
+                (class_partition,X[i]['cmx'],X[i]['batch_size'],w_reg,data_augmentation,gray_scale,shps)
+    plt_path  = 'class_%s.cmx_%s.batch_%s.wreg_%s.aug_%s.gray_%s.in_%s'%\
+                (class_partition,X[i]['cmx'],X[i]['batch_size'],str(w_reg)[0],str(data_augmentation)[0],str(gray_scale)[0],shps)
     utils.plot_train_test(H.history,title,out_path=out_dir+'/acc_loss.%s.png'%plt_path)
     utils.plot_confusion_heatmap(CM[i],title,out_path=out_dir+'/conf_mat.%s.png'%plt_path)
     if best_score<S['score']:
         print('*** new best score detected, saving the model file ***')
         best_score = S['score']
-        model_path = out_dir+'/model.'+'_to_'.join(['-'.join([str(x) for x in class_labels[c]]) for c in class_labels])+'.hdf5'
+        model_path = out_dir+'/model.'+class_partition+'.hdf5'
         model.save(model_path)
 t_stop = time.time()
 print('total time was %s or %s per iteration'%(round(t_stop-t_start,2),round((t_stop-t_start)/(len(CM)*1.0),2)))
