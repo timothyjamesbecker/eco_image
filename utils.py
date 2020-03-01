@@ -363,8 +363,12 @@ def metrics(M,offset=1):
     return P,R,F1
 
 def plot_train_test(history,title='Model ACC+LOSS',ylim=[0.0,1.0],out_path=None,fontsize=8):
-    plt.plot(history['accuracy'])
-    plt.plot(history['val_accuracy'])
+    if 'accuracy' in history:
+        plt.plot(history['accuracy'])
+        plt.plot(history['val_accuracy'])
+    else:
+        plt.plot(history['acc'])
+        plt.plot(history['val_acc'])
     plt.plot(history['loss'])
     plt.plot(history['val_loss'])
     axes = plt.gca()
