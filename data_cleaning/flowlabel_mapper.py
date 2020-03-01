@@ -1,9 +1,24 @@
 import glob
 import os
+import argparse
+
+des="""
+---------------------------------------------------
+Flow Label Mapper
+Timothy James Becker 10-19-19 to 02-28-20
+---------------------------------------------------
+Given flow label csv file and input director,
+Builds new folders and moves all files that
+map to those labels which will prepare the
+data for categorical based ML"""
+parser = argparse.ArgumentParser(description=des.lstrip(" "),formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument('--in_dir',type=str,help='input directory of images\t[None]')
+parser.add_argument('--flow_label',type=str,help='flow label CSV file\t[None]')
+args = parser.parse_args()
 
 #flow_label should have headers and be a CSV
-flow_label = '/media/tbecker/g_data/flowlabel_clean_for_analysis_100719.csv'
-in_dir     = '/media/tbecker/g_data/2018/'
+flow_label = args.flow_label
+in_dir     = args.in_dir
 with open(flow_label,'r') as f:
     data = [line.replace('\r','').replace('\n','').split(',') for line in f.readlines()]
     header,data,C,S,SC = data[0],data[1:],{},{},{}
