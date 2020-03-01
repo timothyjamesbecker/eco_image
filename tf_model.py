@@ -115,7 +115,7 @@ for i in range(len(X)):
         if not w_reg:
             print('weight regularization not being used...')
             model = keras.Sequential([
-                keras.layers.Conv2D(X[i]['cmx'], (3, 3), activation='relu',
+                keras.layers.Conv2D(X[i]['cmx'], (5,5), activation='relu',
                                     input_shape=shapes[0]),
                 keras.layers.MaxPooling2D((2, 2)),
                 keras.layers.Conv2D(X[i]['cmx'], (3, 3), activation='relu'),
@@ -136,7 +136,7 @@ for i in range(len(X)):
         else:
             print('weight regularization being used...')
             model = keras.Sequential([
-                keras.layers.Conv2D(X[i]['cmx'],(3,3),activation='relu',
+                keras.layers.Conv2D(X[i]['cmx'],(5,5),activation='relu',
                                     input_shape=shapes[0],
                                     kernel_regularizer=keras.regularizers.l2(l=decay)),
                 keras.layers.MaxPooling2D((2,2)),
@@ -165,7 +165,7 @@ for i in range(len(X)):
         if not w_reg:
             print('weight regularization not being used...')
             model = keras.Sequential([
-                keras.layers.Conv2D(X[i]['cmx'], (3, 3), activation='relu',
+                keras.layers.Conv2D(X[i]['cmx'], (5,5), activation='relu',
                                     input_shape=shapes[0]),
                 keras.layers.MaxPooling2D((2, 2)),
                 keras.layers.Conv2D(X[i]['cmx'], (3, 3), use_bias=False),
@@ -196,7 +196,7 @@ for i in range(len(X)):
         else:
             print('weight regularization being used...')
             model = keras.Sequential([
-                keras.layers.Conv2D(X[i]['cmx'],(3,3),activation='relu',
+                keras.layers.Conv2D(X[i]['cmx'],(5,5),activation='relu',
                                     input_shape=shapes[0],
                                     kernel_regularizer=keras.regularizers.l2(l=decay)),
                 keras.layers.MaxPooling2D((2,2)),
