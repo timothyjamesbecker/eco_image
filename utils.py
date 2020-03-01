@@ -208,12 +208,12 @@ def load_data_advanced(in_dir,gray_scale=True,split=0.15,enforce_test_label=True
         for i in range(len(test_data)):  test_data[i,:,:,:]  = tst_data[i]
     return (train_data,train_labels,trn_paths),(test_data,test_labels,tst_paths)
 
-def partition_data_paths(in_dir,split=0.15,enforce_test_site=False,verbose=True):
+def partition_data_paths(in_dir,class_idx,split=0.15,balance=None,verbose=True):
     L,C,LC,ls = {},{},{},set([])
     paths = sorted(glob.glob(in_dir+'/*/*.jpg')+glob.glob(in_dir+'/*/*.JPG'))
     for i in range(len(paths)):
         sid   = int(paths[i].rsplit('/')[-1].rsplit('_')[0])
-        label = int(paths[i].rsplit('label_')[-1].rsplit('/')[0])
+        label = class_idx[int(paths[i].rsplit('label_')[-1].rsplit('/')[0])]
         if sid in L:       L[sid] += [[i,label]]
         else:              L[sid]  = [[i,label]]
         if sid in C:       C[sid] += [label]
@@ -224,53 +224,62 @@ def partition_data_paths(in_dir,split=0.15,enforce_test_site=False,verbose=True)
     for l in LC: LC[l] = sorted(list(set(LC[l])))
     trn_paths,tst_paths = [],[]
     sids = list(L.keys())
-    if enforce_test_site: #makes a strict site holdout good to estimate overall performance on a new site
-        idxs = []
-        for i in C:
-            if set(C[i])==ls: idxs += [i]
-        if len(idxs)<1:
-            print("can not enforce test label selection, accuracy measurements will not be accurate....")
-            ts = max(1,round(len(L)*split))
-            test_sidx  = sorted(list(np.random.choice(sids,ts)))
-        else:
-            ts = max(1,round(len(idxs)*split))
-            test_sidx = sorted(list(np.random.choice(idxs,ts)))
+
+    #site-per-label-ratio-sampling-balance-----------------------------------
+    counts = {}
+    for l in LC: counts[l] = 0
+    for sid in C:
+        lbs = C[sid]
+        for l in lbs: counts[l] += 1
+    counts = sorted([[counts[c],c] for c in counts],key=lambda x: x[0])[::-1]
+    lmax = [x for x in counts[0]]
+    sx = counts[1:]
+    if lmax[0]>sum([x[0] for x in sx]): lmax[0] = sum([x[0] for x in sx])
+    sy = sorted([lmax]+sx,key=lambda x: x[1])
+    sx = sorted([x for x in counts],key=lambda x: x[1])
+    if balance is not None:
+        if verbose: print('using label balancing')
+        counts = []
+        for i in range(len(sx)):
+            if verbose: print('balanced %s to %s of label %s'%(sx[i][0],int(sx[i][0]*min(1.0,sy[i][0]/sx[i][0]*balance)),sx[i][1]))
+            if sx[i][0]>0.0: counts += [[min(1.0,sy[i][0]/sx[i][0]*balance),sx[i][1]]]
+            else:            counts += [[0.0,sx[i][1]]]
+    else: counts = [[1.0,i[1]] for i in counts]
+    counts = {x[1]:x[0] for x in counts}
+    #site-per-label-ratio-sampling-balance-----------------------------------
+
+    tst_paths,trn_paths,T = [],[],{}
+    for l in LC:
+        ts = max(1,int(round(len(LC[l])*split)))
+        test_sidx  = sorted(list(np.random.choice(LC[l],ts,replace=False)))
         train_sidx = sorted(list(set(sids).difference(set(test_sidx))))
-        if verbose: print('sids %s selected for test cases'%(','.join([str(x) for x in test_sidx])))
         for sid in test_sidx:
-            for [i,label] in L[sid]:
-                tst_paths   += [paths[i]]
+            l_idx = np.random.choice(range(len(L[sid])),int(len(L[sid])*counts[l]),replace=False)
+            L[sid] = np.asarray(L[sid])
+            for [i,label] in L[sid][l_idx]:
+                if label == l: tst_paths   += [paths[i]]
         for sid in train_sidx:
-            for [i,label] in L[sid]:
-                trn_paths  += [paths[i]]
-    else: #take away split*(total_number of sites per label), makes a good estimate of classification confusion
-        tst_paths,trn_paths,T = [],[],{}
-        for l in LC:
-            ts = max(1,round(len(LC[l])*split))
-            test_sidx  = sorted(list(np.random.choice(LC[l],ts)))
-            train_sidx = sorted(list(set(sids).difference(set(test_sidx))))
-            for sid in test_sidx:
-                for [i,label] in L[sid]:
-                    if label == l: tst_paths   += [paths[i]]
-            for sid in train_sidx:
-                for [i,label] in L[sid]:
-                    if label == l: trn_paths  += [paths[i]]
-            T[l] = test_sidx
-        trn_paths = sorted(list(set(trn_paths)))
-        tst_paths = sorted(list(set(tst_paths)))
-        if verbose:
-            print('test sites randomly selected were:\n'+
-                  '\n'.join(['%s:\t'%l+','.join([str(i) for i in T[l]]) for l in sorted(list(T.keys()))]))
-            print(' in total: %s test images with %s training images'%(len(tst_paths),len(trn_paths)))
+            l_idx = np.random.choice(range(len(L[sid])),int(len(L[sid])*counts[l]),replace=False)
+            L[sid] = np.asarray(L[sid])
+            for [i,label] in L[sid][l_idx]:
+                if label == l: trn_paths  += [paths[i]]
+        T[l] = test_sidx
+    trn_paths = sorted(list(set(trn_paths)))
+    tst_paths = sorted(list(set(tst_paths)))
+    if verbose:
+        print('test sites randomly selected were:\n'+
+              '\n'.join(['%s:\t'%l+','.join([str(i) for i in T[l]]) for l in sorted(list(T.keys()))]))
+        print(' in total: %s test images with %s training images'%(len(tst_paths),len(trn_paths)))
     return trn_paths,tst_paths
 
-def load_data_generator(paths,batch_size=64,gray_scale=True,norm=True,offset=-1):
+def load_data_generator(paths,class_idx,batch_size=64,gray_scale=True,norm=True,offset=-1):
     while True:
         data,labels,l = [],[],len(paths)
         idx = np.random.choice(range(l),size=min(batch_size,l),replace=False)
         if gray_scale:
             for i in idx:
-                labels += [int(paths[i].rsplit('label_')[-1].rsplit('/')[0])+offset]
+                lab     = int(paths[i].rsplit('label_')[-1].rsplit('/')[0])
+                labels += [class_idx[lab]+offset]
                 data   += [cv2.imread(paths[i],cv2.IMREAD_GRAYSCALE)]
             y = np.asarray(labels,dtype='uint8')
             (h,w) = data[0].shape
@@ -278,7 +287,8 @@ def load_data_generator(paths,batch_size=64,gray_scale=True,norm=True,offset=-1)
             for i in range(batch_size): x[i,:,:,0] = data[i]
         else:
             for i in idx:
-                labels += [int(paths[i].rsplit('label_')[-1].rsplit('/')[0])+offset]
+                lab     = int(paths[i].rsplit('label_')[-1].rsplit('/')[0])
+                labels += [class_idx[lab]+offset]
                 data   += [cv2.imread(paths[i])]
             y = np.asarray(labels,dtype='uint8')
             (h,w,c) = data[0].shape
@@ -294,10 +304,11 @@ def get_shapes(paths,gray_scale=True):
         ss = [cv2.imread(path).shape for path in paths]
     return list(set(ss))
 
-def get_labels(paths,offset=-1):
+def get_labels(paths,class_idx,offset=-1):
     labels = []
     for path in paths:
-        labels += [int(path.rsplit('label_')[-1].rsplit('/')[0])+offset]
+        lab = int(path.rsplit('label_')[-1].rsplit('/')[0])
+        labels += [class_idx[lab]+offset]
     labels = np.asarray(labels,dtype='uint8')
     return labels
 
@@ -306,17 +317,19 @@ def confusion_matrix(pred_labels,test_labels,test_data=None,test_paths=None,
                      copy_error_dir=None,normalize=False,print_result=False,offset=1):
     M,m,n = {},set([]),0.0
     for i in test_labels:
+        M[(i,i)] = 0.0
         for j in pred_labels:
             M[(i,j)] = 0.0
+            M[(j,i)] = 0.0
+            M[(j,j)] = 0.0
     for i in range(len(test_labels)):
-        if pred_labels[i] != test_labels[i]:
-            M[(test_labels[i],pred_labels[i])] += 1.0
-            n += 1
-            if copy_error_dir is not None and test_data is not None and test_paths is not None:
-                out_path = copy_error_dir+'/%s_%s/'%(test_labels[i],pred_labels[i])
-                if not os.path.exists(out_path): os.mkdir(out_path)
-                base = test_paths.rsplit('/')[-1]
-                cv2.imwrite(out_path+base,test_data[i])
+        M[(test_labels[i],pred_labels[i])] += 1.0
+        n += 1
+        if copy_error_dir is not None and test_data is not None and test_paths is not None:
+            out_path = copy_error_dir+'/%s_%s/'%(test_labels[i],pred_labels[i])
+            if not os.path.exists(out_path): os.mkdir(out_path)
+            base = test_paths.rsplit('/')[-1]
+            cv2.imwrite(out_path+base,test_data[i])
     if normalize:
         for i,j in M: M[(i,j)] /= n
     if print_result:
@@ -329,9 +342,29 @@ def confusion_matrix(pred_labels,test_labels,test_data=None,test_paths=None,
             print('\t'.join(['%s:%s'%((c[0]+offset,c[1]+offset),round(M[c],2)) for c in ixs[i]]))
     return M
 
+def metrics(M,offset=1):
+    ls,P,R,F1 = set([]),{},{},{}
+    for i,j in M:
+        if i+1 in P: P[i+offset] += [M[(i,j)]]
+        else:        P[i+offset]  = [M[(i,j)]]
+        if j+1 in R: R[j+offset] += [M[(i,j)]]
+        else:        R[j+offset]  = [M[(i,j)]]
+        ls.add(i)
+        ls.add(j)
+    for l in ls:
+        sum_p = sum(P[l+offset])
+        if sum_p>0.0:                   P[l+offset]  = M[(l,l)]/sum(P[l+offset])
+        else:                           P[l+offset]  = 0.0
+        sum_r = sum(R[l+offset])
+        if sum_r>0.0:                   R[l+offset]  = M[(l,l)]/sum(R[l+offset])
+        else:                           R[l+offset]  = 0.0
+        if P[l+offset]+R[l+offset]>0.0: F1[l+offset] = 2.0*(P[l+offset]*R[l+offset])/(P[l+offset]+R[l+offset])
+        else:                           F1[l+offset] = 0.0
+    return P,R,F1
+
 def plot_train_test(history,title='Model ACC+LOSS',ylim=[0.0,1.0],out_path=None):
-    plt.plot(history['acc'])
-    plt.plot(history['val_acc'])
+    plt.plot(history['accuracy'])
+    plt.plot(history['val_accuracy'])
     plt.plot(history['loss'])
     plt.plot(history['val_loss'])
     axes = plt.gca()

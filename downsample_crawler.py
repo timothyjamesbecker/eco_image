@@ -16,7 +16,7 @@ import utils
 des="""
 ---------------------------------------------------
 Bottom-Center Priority Image Crop/Resize Crawler
-Timothy James Becker 10-19-19
+Timothy James Becker 10-19-19 to 02-28-20
 ---------------------------------------------------
 Given input directory of images with EXIF metadata,
 automatically performs an autocrop on the images
@@ -86,10 +86,10 @@ def crop_resize_images(images,out_dir,pixel_res,gray_scale):
 
 if __name__ == '__main__':
     images = glob.glob(in_dir+'/*/*.jpg')+glob.glob(in_dir+'/*/*.JPG')+glob.glob(in_dir+'/*.jpg')+glob.glob(in_dir+'/*.JPG')
-    n = int(len(images)/cpus)
+    n = int(len(images)//cpus)
     image_sets = [images[i*n:(i+1)*n] for i in range(cpus)]
     if len(images)%cpus>0: image_sets[-1] += [images[-1]]
-
+    print('using pixel resolution:%sx%s for %s image sets of average size:%s'%(pixel_res[0],pixel_res[1],len(image_sets),n))
     start = time.time()
     p1 = mp.Pool(processes=cpus)
     for image_subset in image_sets:  # each site in ||
