@@ -238,6 +238,9 @@ for i in range(len(X)):
     test_generator  = utils.load_data_generator(test_paths,class_idx,
                                                 batch_size=X[i]['batch_size'],
                                                 gray_scale=gray_scale)
+    eval_generator  = utils.load_data_generator(test_paths,class_idx,
+                                                batch_size=X[i]['batch_size'],
+                                                gray_scale=gray_scale)
     if not data_augmentation:
         train_generator = utils.load_data_generator(train_paths,class_idx,
                                                     batch_size=X[i]['batch_size'],
@@ -291,7 +294,7 @@ for i in range(len(X)):
     stop = time.time()
     pred,true = [],[]
     for p in range(len(test_paths)//X[i]['batch_size']+(1 if len(test_paths)%X[i]['batch_size']>0 else 0)):
-        batch_data = next(test_generator)
+        batch_data = next(eval_generator)
         pred += [np.argmax(x) for x in model.predict(batch_data[0])]
         true += [x for x in batch_data[1]]
     CM[i] = utils.confusion_matrix(pred,true,print_result=True)
