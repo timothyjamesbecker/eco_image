@@ -12,12 +12,12 @@ import utils
 des="""
 ---------------------------------------------------
 TensorFlow/Keras based hyper-param modeler
-Timothy James Becker 11-04-19 to 02-28-20
+Timothy James Becker 11-04-19 to 03-03-20
 ---------------------------------------------------
 Given input directory with partitioned labels with images inside:
 in_dir/label_1, in_dir/label_2, ...
 and output directory, peforms hyper parmeter search of:
-model complexity, mini-batch size and epochs.
+model complexity, mini-batch size and epochs with several options
 """
 parser = argparse.ArgumentParser(description=des.lstrip(" "),formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('--in_dir',type=str,help='input directory of images\t[None]')
