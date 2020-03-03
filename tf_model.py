@@ -86,8 +86,10 @@ for i in range(len(epochs)):          #epochs
             X[x] = {'cmx':cmx[k],'batch_size':batch_size[j],'epochs':epochs[i]}
             x += 1
 
+print('scanning data paths...')
 train_paths,test_paths = utils.partition_data_paths(in_dir,class_idx,split=split,verbose=False)
 shapes = utils.get_shapes(train_paths,gray_scale=gray_scale)
+print('scanning paths completed with shapes=%s'%shapes)
 
 import tensorflow as tf
 from tensorflow import keras
@@ -234,7 +236,8 @@ for i in range(len(X)):
                   loss='sparse_categorical_crossentropy',
                   metrics=['accuracy'])
     #Deep CNN -------------------------------------------------------------
-    train_paths,test_paths = utils.partition_data_paths(in_dir,class_idx,balance=1.0,split=split)
+    train_paths,test_paths = utils.partition_data_paths(in_dir,class_idx,balance=balance,split=split,strict_test_sid=True)
+    print('%s training and %s test images being used'%(len(train_paths),len(test_paths)))
     test_generator  = utils.load_data_generator(test_paths,class_idx,
                                                 batch_size=X[i]['batch_size'],
                                                 gray_scale=gray_scale)

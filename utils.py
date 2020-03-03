@@ -208,7 +208,36 @@ def load_data_advanced(in_dir,gray_scale=True,split=0.15,enforce_test_label=True
         for i in range(len(test_data)):  test_data[i,:,:,:]  = tst_data[i]
     return (train_data,train_labels,trn_paths),(test_data,test_labels,tst_paths)
 
-def partition_data_paths(in_dir,class_idx,split=0.15,balance=None,verbose=True):
+def n_choose_k(n,k):
+    k_fact = np.product([i for i in range(1,k+1,1)])
+    n_peel = np.product([i for i in range(n-k+1,n+1,1)])
+    return int(n_peel/k_fact)
+
+def sids_spectrum(S):
+    spectrum = {}
+    for sid in S:
+        for i in range(len(S[sid])):
+            if S[sid][i] in spectrum: spectrum[S[sid][i]] += 1
+            else:                spectrum[S[sid][i]]  = 0
+    return spectrum
+
+def label_spect_diff(A,B):
+    ks = sorted(list(set(A).union(B)))
+    D = {}
+    for l in ks:
+        if l in A:
+            D[l] = A[l]
+            if l in B: D[l] = A[l]-B[l]
+        else: D[l] = -1*B[l]
+    return D
+
+def split_diff(A,B,split=0.25):
+    D,S,NS = {},label_spect_diff(A,{}),label_spect_diff(A,B)
+    for l in NS:
+        D[l] = abs(NS[l]/S[l]-split)
+    return sum([D[d] for d in D])
+
+def partition_data_paths(in_dir,class_idx,split=0.15,strict_test_sid=False,balance=None,verbose=True):
     L,C,LC,ls = {},{},{},set([])
     paths = sorted(glob.glob(in_dir+'/*/*.jpg')+glob.glob(in_dir+'/*/*.JPG'))
     for i in range(len(paths)):
@@ -249,27 +278,62 @@ def partition_data_paths(in_dir,class_idx,split=0.15,balance=None,verbose=True):
     #site-per-label-ratio-sampling-balance-----------------------------------
 
     tst_paths,trn_paths,T = [],[],{}
-    for l in LC:
-        ts = max(1,int(round(len(LC[l])*split)))
-        test_sidx  = sorted(list(np.random.choice(LC[l],ts,replace=False)))
+    if strict_test_sid:  # use the sid label spectrum to sample close to split
+        kl = sorted([[l,len(LC[l])] for l in LC],key=lambda x: x[1]) #sorted keys by number of sids that have that label
+        S = sids_spectrum(C) #totals
+        c_si,w = [],100
+        for l in kl:
+            ts,min_split = max(1,int(round(l[0]*split))),[1.0,[]]
+            for i in range(min(w,n_choose_k(l[1],ts))): #bounded search by w
+                si = list(np.random.choice(LC[l[0]],ts,replace=False))
+                NS = sids_spectrum({sid:C[sid] for sid in set(C).difference(set(c_si+si))})
+                d = split_diff(S,NS,split=split)/(1.0*len(S))
+                if d<min_split[0]: min_split = [d,si]
+            c_si += min_split[1]
+            c_si = sorted(list(set(c_si)))
+        NS = sids_spectrum({sid:C[sid] for sid in set(C).difference(set(c_si))})
+        NS = label_spect_diff(NS,{})
+        SN = label_spect_diff(S,NS)
+        d = split_diff(S,NS,split=split)/(1.0*len(S))
+        if verbose:
+            print('using strict site hold out with split=%s +|- %s'%(split,round(d,2)))
+            print('original spectrum: %s'%S)
+            print('training spectrum: %s'%NS)
+            print('testing  spectrum: %s'%SN)
+        test_sidx  = c_si
         train_sidx = sorted(list(set(sids).difference(set(test_sidx))))
-        for sid in test_sidx:
-            l_idx = np.random.choice(range(len(L[sid])),int(len(L[sid])*counts[l]),replace=False)
-            L[sid] = np.asarray(L[sid])
-            for [i,label] in L[sid][l_idx]:
-                if label == l: tst_paths   += [paths[i]]
-        for sid in train_sidx:
-            l_idx = np.random.choice(range(len(L[sid])),int(len(L[sid])*counts[l]),replace=False)
-            L[sid] = np.asarray(L[sid])
-            for [i,label] in L[sid][l_idx]:
-                if label == l: trn_paths  += [paths[i]]
-        T[l] = test_sidx
+        for sid in L:
+            if sid in test_sidx:
+                for [i,label] in L[sid]:
+                    if np.random.choice([True,False],1,p=[counts[label],1.0-counts[label]]):
+                        tst_paths += [paths[i]]
+            else:
+                for [i,label] in L[sid]:
+                    if np.random.choice([True,False],1,p=[counts[label],1.0-counts[label]]):
+                        trn_paths += [paths[i]]
+        if verbose:
+            print('test sites randomly selected were:%s'%c_si)
+    if not strict_test_sid:
+        for l in LC:
+            ts = max(1,int(round(len(LC[l])*split)))
+            test_sidx  = sorted(list(np.random.choice(LC[l],ts,replace=False)))
+            train_sidx = sorted(list(set(sids).difference(set(test_sidx))))
+            for sid in test_sidx:
+                l_idx = np.random.choice(range(len(L[sid])),int(len(L[sid])*counts[l]),replace=False)
+                L[sid] = np.asarray(L[sid])
+                for [i,label] in L[sid][l_idx]:
+                    if label == l: tst_paths   += [paths[i]]
+            for sid in train_sidx:
+                l_idx = np.random.choice(range(len(L[sid])),int(len(L[sid])*counts[l]),replace=False)
+                L[sid] = np.asarray(L[sid])
+                for [i,label] in L[sid][l_idx]:
+                    if label == l: trn_paths  += [paths[i]]
+            T[l] = test_sidx
+        if verbose:
+            print('test sites randomly selected were:\n'+
+                  '\n'.join(['%s:\t'%l+','.join([str(i) for i in T[l]]) for l in sorted(list(T.keys()))]))
     trn_paths = sorted(list(set(trn_paths)))
     tst_paths = sorted(list(set(tst_paths)))
-    if verbose:
-        print('test sites randomly selected were:\n'+
-              '\n'.join(['%s:\t'%l+','.join([str(i) for i in T[l]]) for l in sorted(list(T.keys()))]))
-        print(' in total: %s test images with %s training images'%(len(tst_paths),len(trn_paths)))
     return trn_paths,tst_paths
 
 def load_data_generator(paths,class_idx,batch_size=64,gray_scale=True,norm=True,offset=-1):
