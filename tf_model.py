@@ -30,6 +30,7 @@ parser.add_argument('--balance',type=float,help='1.0 to 10.0 amount of inter-cla
 parser.add_argument('--batch_norm',action='store_true',help='use batch normalization \t[False]')
 parser.add_argument('--w_reg',action='store_true',help='use weight regularization \t[False]')
 parser.add_argument('--data_aug',action='store_true',help='employ data augmentation\t[False]')
+parser.add_argument('--strict',action='store_true',help='sids are not used for test and train\t[False]')
 parser.add_argument('--aug_workers',type=int,help='number of data augmentation worker threads\t[1]')
 parser.add_argument('--hyper',type=str,help='semi-colon then comma seperated hyper parameter search cmx;batch_size,epochs\t[8;8;10]')
 args = parser.parse_args()
@@ -236,7 +237,7 @@ for i in range(len(X)):
                   loss='sparse_categorical_crossentropy',
                   metrics=['accuracy'])
     #Deep CNN -------------------------------------------------------------
-    train_paths,test_paths = utils.partition_data_paths(in_dir,class_idx,balance=balance,split=split,strict_test_sid=True)
+    train_paths,test_paths = utils.partition_data_paths(in_dir,class_idx,balance=balance,split=split,strict_test_sid=args.strict)
     print('%s training and %s test images being used'%(len(train_paths),len(test_paths)))
     test_generator  = utils.load_data_generator(test_paths,class_idx,
                                                 batch_size=X[i]['batch_size'],
