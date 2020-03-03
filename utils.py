@@ -271,9 +271,10 @@ def partition_data_paths(in_dir,class_idx,split=0.15,strict_test_sid=False,balan
         counts = []
         for i in range(len(sx)):
             if verbose: print('balanced %s to %s of label %s'%(sx[i][0],int(sx[i][0]*min(1.0,sy[i][0]/sx[i][0]*balance)),sx[i][1]))
-            if sx[i][0]>0.0: counts += [[min(1.0,sy[i][0]/sx[i][0]*balance),sx[i][1]]]
-            else:            counts += [[0.0,sx[i][1]]]
-    else: counts = [[1.0,i[1]] for i in counts]
+            if sx[i][0]>=lmax[0]: counts += [[min(1.0,sy[i][0]/sx[i][0]*balance),sx[i][1]]]
+            elif sx[i][0]>0.0:    counts += [[min(1.0,sy[i][0]/sx[i][0]),sx[i][1]]]
+            else:                 counts += [[0.0,sx[i][1]]]
+    else:                         counts = [[1.0,i[1]] for i in counts]
     counts = {x[1]:x[0] for x in counts}
     #site-per-label-ratio-sampling-balance-----------------------------------
 

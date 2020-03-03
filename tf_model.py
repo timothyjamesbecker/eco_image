@@ -243,7 +243,7 @@ for i in range(len(X)):
                                                 batch_size=X[i]['batch_size'],
                                                 gray_scale=gray_scale)
     eval_generator  = utils.load_data_generator(test_paths,class_idx,
-                                                batch_size=X[i]['batch_size'],
+                                                batch_size=len(test_paths),
                                                 gray_scale=gray_scale)
     if not data_augmentation:
         train_generator = utils.load_data_generator(train_paths,class_idx,
@@ -297,15 +297,14 @@ for i in range(len(X)):
                                 verbose=0,workers=aug_workers)
     stop = time.time()
     pred,true = [],[]
-    for p in range(len(test_paths)//X[i]['batch_size']+(1 if len(test_paths)%X[i]['batch_size']>0 else 0)):
-        batch_data = next(eval_generator)
-        pred += [np.argmax(x) for x in model.predict(batch_data[0])]
-        true += [x for x in batch_data[1]]
+    batch_data = next(eval_generator)
+    pred += [np.argmax(x) for x in model.predict(batch_data[0])]
+    true += [x for x in batch_data[1]]
     CM[i] = utils.confusion_matrix(pred,true,print_result=True)
     prec,rec,f1 = utils.metrics(CM[i])
     run_score = sum([f1[k] for k in f1])/(classes*1.0)
     print('%s Measured CNN accuracy for %s classes using %s test images'%(run_score,classes,len(pred)))
-    pred,true = [],[]
+
     S['score'] = run_score
     class_partition = '_'.join(['-'.join([str(x) for x in class_labels[c]]) for c in class_labels])
     shps      = '%sx%sx%s'%(shapes[0][0],shapes[0][1],shapes[0][2])
