@@ -4,6 +4,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 import glob
+import json
 import time
 import argparse
 import numpy as np
@@ -55,6 +56,7 @@ else:
     for c in class_labels:
         for l in class_labels[c]: class_idx[l] = c
     classes = len(class_labels)
+class_partition = '_'.join(['-'.join([str(x) for x in class_labels[c]]) for c in class_labels])
 if args.split is not None:
     split = args.split
 else:
@@ -104,8 +106,12 @@ if gpus:
   except RuntimeError as e: print(e)
 
 t_start = time.time()
-H,CM,S,best_score = {},{},{},0.0
-data,labels = None,None
+best_score,best_score_path = 0.0,out_dir+'best_score.%s.json'%class_partition
+if os.path.exists(best_score_path):
+    with open(best_score_path,'r') as f:
+        O = json.load(f)
+        best_score = O['score']
+H,CM,S,data,labels = {},{},{},None,None
 for i in range(len(X)):
     S['params'] = X[i]
     S['params']['wreg'] = w_reg
@@ -235,7 +241,7 @@ for i in range(len(X)):
             ])
     model.compile(optimizer='adam',
                   loss='sparse_categorical_crossentropy',
-                  metrics=['accuracy'])
+                  metrics=['categorical_accuracy'])
     #Deep CNN -------------------------------------------------------------
     train_paths,test_paths = utils.partition_data_paths(in_dir,class_idx,balance=balance,split=split,strict_test_sid=args.strict)
     print('%s training and %s test images being used'%(len(train_paths),len(test_paths)))
@@ -306,7 +312,6 @@ for i in range(len(X)):
     print('%s Measured CNN accuracy for %s classes using %s test images'%(run_score,classes,len(pred)))
 
     S['score'] = run_score
-    class_partition = '_'.join(['-'.join([str(x) for x in class_labels[c]]) for c in class_labels])
     shps      = '%sx%sx%s'%(shapes[0][0],shapes[0][1],shapes[0][2])
     title     = 'class=%s cmx=%s batch=%s wreg=%s aug=%s gray=%s in:%s'%\
                 (class_partition,X[i]['cmx'],X[i]['batch_size'],w_reg,data_augmentation,gray_scale,shps)
@@ -317,6 +322,7 @@ for i in range(len(X)):
     if best_score<S['score']:
         print('*** new best score detected, saving the model file ***')
         best_score = S['score']
+        with open(best_score_path,'w') as f: json.dump(S,f)
         model_path = out_dir+'/model.'+class_partition+'.hdf5'
         model.save(model_path)
 t_stop = time.time()
