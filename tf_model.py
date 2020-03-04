@@ -241,7 +241,7 @@ for i in range(len(X)):
             ])
     model.compile(optimizer='adam',
                   loss='sparse_categorical_crossentropy',
-                  metrics=['categorical_accuracy'])
+                  metrics=['sparse_categorical_accuracy'])
     #Deep CNN -------------------------------------------------------------
     train_paths,test_paths = utils.partition_data_paths(in_dir,class_idx,balance=balance,split=split,strict_test_sid=args.strict)
     print('%s training and %s test images being used'%(len(train_paths),len(test_paths)))
