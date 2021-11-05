@@ -4,9 +4,9 @@ unix = False
 os_dir_char = ('/' if unix else '\\')
 prefered_ext = 'JPG'
 
-imagedir = 'P:\\Projects\\GitHub_Prj\\eco_image\\data_cleaning\\testdata'
-dirs = ['home','mkozlak','Documents','Projects','GitHub','eco_image','data_cleaning','testdata']
-os_dir_char.join(dirs)
+imagedir = 'C:\\Users\\deepuser\\Documents\\Projects\\Trail_Cam_Imgs'
+# dirs = ['home','mkozlak','Documents','Projects','GitHub','eco_image','data_cleaning','testdata']
+# os_dir_char.join(dirs)
 
 #[1] get all valid JPGS that live in a sub dir-------------------------------------
 if unix:

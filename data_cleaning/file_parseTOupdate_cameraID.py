@@ -5,7 +5,7 @@ import datetime
 import time
 
 #identify a directory and list only folders in the directory
-imagedir = 'S:\\Streamflow\\Dry Stream Documentations\\2018 Streamflow Monitoring\\Pictures'
+imagedir = 'C:\\Users\\deepuser\\Documents\\Projects\\Trail_Cam_Imgs'
 fpathdir = [d for d in os.listdir(imagedir) if os.path.isdir(os.path.join(imagedir, d))]
 
 def get_exif_date_time(path,tag='0th',byte=306):
