@@ -36,6 +36,8 @@ def get_camera_seg_mult(camera_type):
         offset = 0.925
     elif camera_type.upper().startswith('SPYPOINT'):
         offset = 0.75
+    elif camera_type.upper().startswith('GOPRO'):
+        offset = 0.75
     else:
         offset = 0.5
     return offset
@@ -92,6 +94,39 @@ def resize(img,width=640,height=480,interp=cv2.INTER_CUBIC):
         img = img[d:img.shape[0],:,:]
     img = cv2.resize(img,(width,height),interpolation=interp)
     return img
+
+def multi_tilt_resize(raw_img,width=640,height=480,n=5,interp=cv2.INTER_CUBIC):
+    imgs = []
+    degs = [x for x in range(-45,45,90//(n-1))]
+    if len(degs)<n: degs += [45]
+    for j in range(n):
+        M = cv2.getRotationMatrix2D(((raw_img.shape[0]-1)/2.0,(raw_img.shape[0]-1)/2.0),degs[j],1)
+        new_img = cv2.warpAffine(raw_img,M,raw_img.shape[0:2][::-1])
+        a,b = int(round(new_img.shape[0]/2)),int(round(new_img.shape[1]/2))
+        if abs(degs[j])<20:
+            sel_img = new_img[a//2:3*a//2,b//2:3*b//2,:]
+        else:
+            sel_img = new_img[a//3:a,b//3:b,:]
+        h_scale = height/(sel_img.shape[0]*1.0)
+        w_scale = width/(sel_img.shape[1]*1.0)
+        if w_scale<h_scale:
+            dim = (int(round(sel_img.shape[1]*h_scale)),int(round(sel_img.shape[0]*h_scale)))
+            img = cv2.resize(sel_img,dim,interpolation=interp)
+            d = int(round((img.shape[1]-width)/2.0))
+            for i in range(n):
+                x = d//(n-i)
+                y = (img.shape[1]-2*d)
+                imgs += [cv2.resize(img[:,x:(x+y),:],(width,height),interpolation=interp)]
+        else:
+            dim = (int(round(sel_img.shape[1]*w_scale)),
+                   int(round(sel_img.shape[0]*w_scale)))
+            img = cv2.resize(sel_img, dim, interpolation=interp)
+            d = int(round((img.shape[0]-height)))
+            for i in range(n):
+                x = d//(n-i)
+                y = img.shape[0]-d
+                imgs += [cv2.resize(img[x:x+y,:,:],(width,height),interpolation=interp)]
+    return imgs
 
 def plot(img):
     plt.imshow(cv2.cvtColor(img,cv2.COLOR_BGR2RGB))
@@ -237,7 +272,8 @@ def split_diff(A,B,split=0.25):
         D[l] = abs(NS[l]/S[l]-split)
     return sum([D[d] for d in D])
 
-def partition_data_paths(in_dir,class_idx,split=0.15,strict_test_sid=False,balance=None,verbose=True):
+def partition_data_paths(in_dir,class_idx,split=0.15,seed=None,strict_test_sid=False,balance=None,verbose=True):
+    if seed is not None: np.random.seed(seed)
     L,C,LC,ls = {},{},{},set([])
     paths = sorted(glob.glob(in_dir+'/*/*.jpg')+glob.glob(in_dir+'/*/*.JPG'))
     for i in range(len(paths)):
