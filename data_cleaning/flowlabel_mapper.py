@@ -13,12 +13,15 @@ map to those labels which will prepare the
 data for categorical based ML"""
 parser = argparse.ArgumentParser(description=des.lstrip(" "),formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('--in_dir',type=str,help='input directory of images\t[None]')
+parser.add_argument('--out_dir',type=str,help='output directory of images\t[None]')
 parser.add_argument('--flow_label',type=str,help='flow label CSV file\t[None]')
 args = parser.parse_args()
 
 #flow_label should have headers and be a CSV
 flow_label = args.flow_label
 in_dir     = args.in_dir
+out_dir    = args.out_dir
+if not os.path.exists(out_dir): os.mkdir(out_dir)
 with open(flow_label,'r') as f:
     data = [line.replace('\r','').replace('\n','').split(',') for line in f.readlines()]
     header,data,C,S,SC = data[0],data[1:],{},{},{}
@@ -39,6 +42,6 @@ with open(flow_label,'r') as f:
 for c in C:
     for i in range(len(C[c])):
         in_path  = in_dir+C[c][i]
-        out_path = in_dir+'/label_%s/'%c+C[c][i].rsplit('/')[-1]
-        if not os.path.exists(in_dir+'/label_%s/'%c): os.mkdir(in_dir+'/label_%s/'%c)
+        out_path = out_dir+'/label_%s/'%c+C[c][i].rsplit('/')[-1]
+        if not os.path.exists(out_dir+'/label_%s/'%c): os.mkdir(out_dir+'/label_%s/'%c)
         if os.path.exists(in_path): os.rename(in_path,out_path)

@@ -55,7 +55,7 @@ result_list = [] #async queue to put results for || stages
 def collect_results(result):
     result_list.append(result)
 
-def crop_resize_images(images,out_dir,pixel_res,gray_scale):
+def crop_resize_images(images,out_dir,pixel_res,gray_scale,n=1):
     out = {}
     for image in images:
         try:
@@ -66,6 +66,8 @@ def crop_resize_images(images,out_dir,pixel_res,gray_scale):
             seg_line = [0,int(raw_img.shape[0]*0.925),raw_img.shape[1],int(raw_img.shape[0]*0.925)]
             clip_img = utils.crop_seg(raw_img,seg_line)
             ml_img   = utils.resize(clip_img,pixel_res[0],pixel_res[1])
+            #utils.multi_tilt_resize(...)
+            #for ml_img in ml_imgs:
             if gray_scale:
                 ml_img = cv2.cvtColor(ml_img,cv2.COLOR_BGR2GRAY)
                 ml_img = cv2.cvtColor(ml_img,cv2.COLOR_GRAY2BGR)

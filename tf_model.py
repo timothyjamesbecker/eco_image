@@ -178,7 +178,7 @@ if __name__ == '__main__':
     if args.balance is not None:
         balance = [float(x) for x in args.balance.split(',')]
     else:
-        balance = [1.0]
+        balance = [None]
     if args.hyper is not None:
         [cmx,batch_size,epochs] = [[int(y) for y in x.split(',')] for x in args.hyper.split(';')]
     else:
@@ -214,7 +214,6 @@ if __name__ == '__main__':
             best_score = O['score']
     H,CM,S,data,labels = {},{},{},None,None
 
-    np.random.seed(seed)
     with tf.device('/gpu:%s'%gpu_num):
         for i in range(len(X)):
             if seed is None: r_seed = int(np.random.get_state()[1][0])
@@ -280,8 +279,12 @@ if __name__ == '__main__':
                           metrics=['sparse_categorical_accuracy'])
 
             #Deep CNN -------------------------------------------------------------
-            train_paths,test_paths = utils.partition_data_paths(in_dir,class_idx,balance=X[i]['balance'],split=split,
-                                                                seed=r_seed,strict_test_sid=args.strict)
+            if X[i]['balance'] is not None:
+                train_paths,test_paths = utils.partition_data_paths(in_dir,class_idx,balance=X[i]['balance'],split=split,
+                                                                    seed=r_seed,strict_test_sid=args.strict)
+            else:
+                train_paths,test_paths = utils.partition_data_paths(in_dir,class_idx,split=split,
+                                                                    seed=r_seed,strict_test_sid=args.strict)
             print('%s training and %s test images being used'%(len(train_paths),len(test_paths)))
 
             test_generator  = utils.load_data_generator(test_paths,class_idx,

@@ -315,7 +315,7 @@ def partition_data_paths(in_dir,class_idx,split=0.15,seed=None,strict_test_sid=F
     #site-per-label-ratio-sampling-balance-----------------------------------
 
     tst_paths,trn_paths,T = [],[],{}
-    if strict_test_sid:  # use the sid label spectrum to sample close to split
+    if strict_test_sid:  # use the sid label spectrum to sample close to split, this will keep entire sites from training
         kl = sorted([[l,len(LC[l])] for l in LC],key=lambda x: x[1]) #sorted keys by number of sids that have that label
         S = sids_spectrum(C) #totals
         c_si,w = [],100
@@ -331,6 +331,7 @@ def partition_data_paths(in_dir,class_idx,split=0.15,seed=None,strict_test_sid=F
         NS = sids_spectrum({sid:C[sid] for sid in set(C).difference(set(c_si))})
         NS = label_spect_diff(NS,{})
         SN = label_spect_diff(S,NS)
+
         d = split_diff(S,NS,split=split)/(1.0*len(S))
         if verbose:
             print('using strict site hold out with split=%s +|- %s'%(split,round(d,2)))
@@ -350,7 +351,7 @@ def partition_data_paths(in_dir,class_idx,split=0.15,seed=None,strict_test_sid=F
                         trn_paths += [paths[i]]
         if verbose:
             print('test sites randomly selected were:%s'%c_si)
-    if not strict_test_sid:
+    else:
         for l in LC:
             ts = max(1,int(round(len(LC[l])*split)))
             test_sidx  = sorted(list(np.random.choice(LC[l],ts,replace=False)))
