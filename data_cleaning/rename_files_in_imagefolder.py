@@ -4,7 +4,7 @@ unix = False
 os_dir_char = ('/' if unix else '\\')
 prefered_ext = 'JPG'
 
-imagedir = 'C:\\Users\\deepuser\\Documents\\Projects\\Trail_Cam_Imgs'
+imagedir = 'D:\\flow_data\\Trail_Camera_Pictures'
 # dirs = ['home','mkozlak','Documents','Projects','GitHub','eco_image','data_cleaning','testdata']
 # os_dir_char.join(dirs)
 
