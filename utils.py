@@ -4,15 +4,20 @@ import exifread
 import piexif
 import cv2
 import glob
+import math
+import datetime as dt
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+#utils------------------------------------------------------------------------
+import utils
+
 
 def local_path():
     return '/'.join(os.path.abspath(__file__).split('/')[:-1])+'/'
 
-#given an image file with exif metadat return set of the tags that are required
 def read_exif_tags(path,tag_set='all'):
     tags,T = {},{}
     with open(path,'rb') as f: tags = exifread.process_file(f)
@@ -29,6 +34,13 @@ def read_exif_tags(path,tag_set='all'):
 def set_exif_tags(path,tag_set):
     return True
 
+def read_crop_resize(img_path,width=600,height=200):
+    img       = cv2.imread(img_path)
+    seg_line  = [0,int(img.shape[0]*0.925),img.shape[1],int(img.shape[0]*0.925)]
+    clip_img  = crop_seg(img,seg_line)
+    new_img   = resize(clip_img,width=width,height=height)
+    return new_img
+
 def get_camera_seg_mult(camera_type):
     if camera_type.upper().startswith('MOULTRIE'):
         offset = 0.10
@@ -42,7 +54,6 @@ def get_camera_seg_mult(camera_type):
         offset = 0.5
     return offset
 
-#uses the
 def get_seg_line(img,low=50,high=100,average=True,mult=0.8,vertical=False):
     seg = [0,0,0,0]
     edges = cv2.Canny(img,low,high,apertureSize=3)
@@ -64,44 +75,157 @@ def get_seg_line(img,low=50,high=100,average=True,mult=0.8,vertical=False):
         seg[3] = seg[1]
     return seg
 
-#seg is one of four orientations t- r| b- |l img needs a cut first
+def get_rotation_pad(img,luma_thresh=10):
+    imgL = cv2.cvtColor(img,cv2.COLOR_BGR2YCrCb)[:,:,0]
+    lpad,rpad  = 0,0
+    for j in range(imgL.shape[1]//2):
+        i = 0
+        while i<imgL.shape[0]//4 and imgL[i,j]<luma_thresh: i+=1
+        if i>lpad: lpad=i
+    if lpad==i:lpad=0
+    for j in range(imgL.shape[1]//2,imgL.shape[1],1):
+        i = 0
+        while i<imgL.shape[0]//4 and imgL[i,j]<luma_thresh: i+=1
+        if i>rpad: rpad=i
+    if rpad==i:rpad=0
+    return max(lpad,rpad)
+#utils------------------------------------------------------------------------
+
+#tests:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+def chroma_dropped(img,cutoff=5):
+    dropped = False
+    cvt = cv2.cvtColor(img,cv2.COLOR_BGR2YCrCb)
+    cr_std = np.std(cvt[:,:,1])
+    cb_std = np.std(cvt[:,:,2])
+    if cr_std<cutoff and cb_std<cutoff: dropped = True
+    return dropped
+
+def too_dark(img,cutoff=40):  #night image was too dark
+    dark = False
+    luma = cv2.cvtColor(img,cv2.COLOR_BGR2YCrCb)[:,:,0]
+    w,h = luma.shape[0],luma.shape[1]
+    z1,z2,z3,z4 = np.mean(luma[:w//2,:h//2]),np.mean(luma[:w//2,h//2:]),np.mean(luma[w//2:,:h//2]),np.mean(luma[w//2:,h//2:])
+    zs = [(1 if z1<cutoff else 0),(1 if z2<cutoff else 0),(1 if z3<cutoff else 0),(1 if z4<cutoff else 0)]
+    if sum(zs)>3: dark = True
+    return dark
+
+def too_light(img,cutoff=180): #overexposure
+    light = False
+    luma = cv2.cvtColor(img,cv2.COLOR_BGR2YCrCb)[:,:,0]
+    w,h = luma.shape[0],luma.shape[1]
+    z1,z2,z3,z4 = np.mean(luma[:w//2,:h//2]),np.mean(luma[:w//2,h//2:]),np.mean(luma[w//2:,:h//2]),np.mean(luma[w//2:,h//2:])
+    zs = [(1 if z1>cutoff else 0),(1 if z2>cutoff else 0),(1 if z3>cutoff else 0),(1 if z4>cutoff else 0)]
+    if sum(zs)>2: light = True
+    return light
+
+def blurred(img,cutoff=75.0,ksize=3):    #too much image blur
+    blur = False
+    luma = cv2.cvtColor(img,cv2.COLOR_BGR2YCrCb)[:,:,0]
+    w,h = luma.shape[0],luma.shape[1]
+    d1 = cv2.Laplacian(luma[:w//2,:h//2],ddepth=cv2.CV_64F,ksize=ksize)
+    d2 = cv2.Laplacian(luma[:w//2,h//2:],ddepth=cv2.CV_64F,ksize=ksize)
+    d3 = cv2.Laplacian(luma[w//2:,:h//2],ddepth=cv2.CV_64F,ksize=ksize)
+    d4 = cv2.Laplacian(luma[w//2:,h//2:],ddepth=cv2.CV_64F,ksize=ksize)
+    ds = [(1 if np.std(d1)<cutoff else 0),(1 if np.std(d2)<cutoff else 0),(1 if np.std(d3)<cutoff else 0),(1 if np.std(d4)<cutoff else 0)]
+    if sum(ds)>2: blur = True
+    return blur
+
+def lens_flare(img,pixel_size=None,verbose=False):
+    flare = False
+    if pixel_size is None:
+        pixel_size = int(round(min(img.shape[0:2])/10))
+    area  = int(round(0.25*np.pi*pixel_size**2))
+    luma  = cv2.cvtColor(img,cv2.COLOR_BGR2YCrCb)[:,:,0]
+    blur  = cv2.medianBlur(luma,5)
+    sharp = sharpen(blur,amount=2.0)
+    params = cv2.SimpleBlobDetector_Params()
+    params.filterByArea = True
+    params.minArea = area
+    params.filterByCircularity = True
+    params.minCircularity = 0.8
+    params.filterByConvexity = True
+    params.minConvexity = 0.8
+    params.filterByInertia = True
+    params.minInertiaRatio = 0.8
+    detector = cv2.SimpleBlobDetector_create(params)
+    for t in [200,195,190,185,180,175,170,165,160]:
+        ret, thresh = cv2.threshold(sharp,t,255,cv2.THRESH_BINARY_INV)
+        kpts = detector.detect(thresh)
+        if len(kpts)>0: break
+    if len(kpts)>0: flare = True
+    if verbose:
+        blank = np.zeros((1, 1))
+        blobs = cv2.drawKeypoints(img,kpts,np.zeros((1,1)),(0,0,255),cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+        utils.plot(blobs)
+    return flare
+
+#make more robust with hue rotation ???
+def luma_rotated(ref,img,sd=3.0,d_min=2.0,d_max=10.0,steps=25,pad=0.2,verbose=False):
+    theta,rot = 0.0,False
+    angs = np.arange(d_min,d_max,(d_max-d_min)/steps)
+    angs = sorted(sorted(angs)+sorted(-1*angs))[::-1]
+    refR,imgA = crop(np.copy(ref),pad),crop(np.copy(img),pad)
+    ref_diff = np.std(luma_diff(refR,imgA))
+    for ang in angs:
+        imgR = crop(rotate(np.copy(img),ang),pad)
+        new_diff = np.std(luma_diff(refR,imgR))
+        if new_diff+sd<ref_diff: theta = ang
+    if (theta<0.0 or theta>0.0): rot = True
+    return rot
+#tests:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#image processing routines]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+def crop(img,pad=0.2,pixels=None):
+    if pixels is None:
+        h_pad,w_pad  = int(round(pad*img.shape[0]//2)),int(round(pad*img.shape[1]//2))
+        img1 = img[h_pad:(img.shape[0]-h_pad+1),w_pad:(img.shape[1]-w_pad+1),:]
+    else:
+        img1 = img[pixels:(img.shape[0]-pixels+1),pixels:(img.shape[1]-pixels+1),:]
+    return img1
+
 def crop_seg(img,seg):
     if np.abs(seg[0]-seg[2]) > np.abs(seg[1]-seg[3]):    #horizontal
         if np.abs(img.shape[0]-seg[1]) < seg[1]: #bottom orientation
-            img = img[0:seg[1]+1,:,:]
+            img1 = img[0:seg[1]+1,:,:]
         else:                                    #top    orientation
-            img = img[seg[1]:,:,:]
+            img1 = img[seg[1]:,:,:]
     else:                                                 # vertical
         if np.abs(img.shape[1]-seg[2])<seg[2]:   #right  orientation
-            img = img[:,0:seg[2]+1,:]
+            img1 = img[:,0:seg[2]+1,:]
         else:                                    #left   orientation
-            img = img[:,seg[2]:,:]
-    return img
+            img1 = img[:,seg[2]:,:]
+    return img1
 
 def resize(img,width=640,height=480,interp=cv2.INTER_CUBIC):
     h_scale = height/(img.shape[0]*1.0)
     w_scale =  width/(img.shape[1]*1.0)
     if w_scale<h_scale:
         dim = (int(round(img.shape[1]*h_scale)),int(round(img.shape[0]*h_scale)))
-        img = cv2.resize(img,dim,interpolation=interp)
-        d = int(round((img.shape[1]-width)/2.0))
-        img = img[:,d:(img.shape[1]-d),:]
+        img1 = cv2.resize(img,dim,interpolation=interp)
+        d = int(round((img1.shape[1]-width)/2.0))
+        img1 = img1[:,d:(img1.shape[1]-d),:]
     else:
         dim = (int(round(img.shape[1]*w_scale)),
                int(round(img.shape[0]*w_scale)))
-        img = cv2.resize(img,dim,interpolation=interp)
-        d = int(round((img.shape[0]-height)))
-        img = img[d:img.shape[0],:,:]
-    img = cv2.resize(img,(width,height),interpolation=interp)
-    return img
+        img1 = cv2.resize(img,dim,interpolation=interp)
+        d = int(round((img1.shape[0]-height)))
+        img1 = img1[d:img1.shape[0],:,:]
+    img1 = cv2.resize(img1,(width,height),interpolation=interp)
+    return img1
 
-def multi_tilt_resize(raw_img,width=640,height=480,n=5,interp=cv2.INTER_CUBIC):
+def rotate(image,angle):
+  image_center = tuple(np.array(image.shape[1::-1])/2)
+  rot_mat = cv2.getRotationMatrix2D(image_center,angle,1.0)
+  result = cv2.warpAffine(image,rot_mat,image.shape[1::-1],flags=cv2.INTER_CUBIC)
+  return result
+
+def multi_tilt_resize(img,width=640,height=480,n=5,deg=45,translate=False,interp=cv2.INTER_CUBIC):
     imgs = []
-    degs = [x for x in range(-45,45,90//(n-1))]
-    if len(degs)<n: degs += [45]
+    degs = [x for x in range(-1*deg,deg,(deg*2)//(n-1))]
+    if len(degs)<n: degs += [deg]
     for j in range(n):
-        M = cv2.getRotationMatrix2D(((raw_img.shape[0]-1)/2.0,(raw_img.shape[0]-1)/2.0),degs[j],1)
-        new_img = cv2.warpAffine(raw_img,M,raw_img.shape[0:2][::-1])
+        M = cv2.getRotationMatrix2D(((img.shape[0]-1)/2.0,(img.shape[0]-1)/2.0),degs[j],1)
+        new_img = cv2.warpAffine(img,M,img.shape[0:2][::-1])
         a,b = int(round(new_img.shape[0]/2)),int(round(new_img.shape[1]/2))
         if abs(degs[j])<20:
             sel_img = new_img[a//2:3*a//2,b//2:3*b//2,:]
@@ -110,25 +234,285 @@ def multi_tilt_resize(raw_img,width=640,height=480,n=5,interp=cv2.INTER_CUBIC):
         h_scale = height/(sel_img.shape[0]*1.0)
         w_scale = width/(sel_img.shape[1]*1.0)
         if w_scale<h_scale:
-            dim = (int(round(sel_img.shape[1]*h_scale)),int(round(sel_img.shape[0]*h_scale)))
-            img = cv2.resize(sel_img,dim,interpolation=interp)
-            d = int(round((img.shape[1]-width)/2.0))
-            for i in range(n):
-                x = d//(n-i)
-                y = (img.shape[1]-2*d)
-                imgs += [cv2.resize(img[:,x:(x+y),:],(width,height),interpolation=interp)]
+            if translate:
+                dim = (int(round(sel_img.shape[1]*h_scale)),
+                       int(round(sel_img.shape[0]*h_scale)))
+                img1 = cv2.resize(sel_img,dim,interpolation=interp)
+                d = int(round((img1.shape[1]-width)/2.0))
+                for i in range(n):
+                    x = d//(n-i)
+                    y = (img1.shape[1]-2*d)
+                    imgs += [cv2.resize(img1[:,x:(x+y),:],(width,height),interpolation=interp)]
+            else:
+                dim = (int(round(img.shape[1]*h_scale)),
+                       int(round(img.shape[0]*h_scale)))
+                img1 = cv2.resize(sel_img,dim,interpolation=interp)
+                d = int(round((img1.shape[1]-width)/2.0))
+                imgs += [cv2.resize([img1[:,d:(img1.shape[1]-d),:]],(width,height),interpolation=interp)]
         else:
-            dim = (int(round(sel_img.shape[1]*w_scale)),
-                   int(round(sel_img.shape[0]*w_scale)))
-            img = cv2.resize(sel_img, dim, interpolation=interp)
-            d = int(round((img.shape[0]-height)))
-            for i in range(n):
-                x = d//(n-i)
-                y = img.shape[0]-d
-                imgs += [cv2.resize(img[x:x+y,:,:],(width,height),interpolation=interp)]
+            if translate:
+                dim = (int(round(sel_img.shape[1]*w_scale)),
+                       int(round(sel_img.shape[0]*w_scale)))
+                img1 = cv2.resize(sel_img, dim, interpolation=interp)
+                d = int(round((img1.shape[0]-height)))
+                for i in range(n):
+                    x = d//(n-i)
+                    y = img1.shape[0]-d
+                    imgs += [cv2.resize(img1[x:x+y,:,:],(width,height),interpolation=interp)]
+            else:
+                dim = (int(round(sel_img.shape[1]*w_scale)),
+                       int(round(sel_img.shape[0]*w_scale)))
+                img1 = cv2.resize(sel_img,dim,interpolation=interp)
+                d = int(round((img1.shape[0]-height)))
+                imgs += [cv2.resize(img1[d:img1.shape[0],:,:],(width,height),interpolation=interp)]
     return imgs
 
-def plot(img):
+def hue_mean(imgs):
+    hue_sum = np.zeros((imgs[0].shape[0],imgs[0].shape[1]),dtype=float)
+    for img in imgs:
+        hue_sum += cv2.cvtColor(img,cv2.COLOR_BGR2HSV)[:,:,0]
+    hue_sum /= len(imgs)*1.0
+    return np.asarray(np.round(hue_sum),dtype=np.uint8)
+
+def sat_mean(imgs):
+    sat_sum = np.zeros((imgs[0].shape[0],imgs[0].shape[1]),dtype=float)
+    for img in imgs:
+        sat_sum += cv2.cvtColor(img,cv2.COLOR_BGR2HSV)[:,:,1]
+    sat_sum /= len(imgs)*1.0
+    return np.asarray(np.round(sat_sum),dtype=np.uint8)
+
+def val_mean(imgs):
+    val_sum = np.zeros((imgs[0].shape[0],imgs[0].shape[1]),dtype=float)
+    for img in imgs:
+        val_sum += cv2.cvtColor(img,cv2.COLOR_BGR2HSV)[:,:,2]
+    val_sum /= len(imgs)*1.0
+    return np.asarray(np.round(val_sum),dtype=np.uint8)
+
+def luma_mean(imgs,equalize=False):
+    ycrcb_sum = np.zeros((imgs[0].shape[0],imgs[0].shape[1]),dtype=float)
+    if equalize:
+        for img in imgs:
+            ycrcb_sum += cv2.equalizeHist(cv2.cvtColor(img,cv2.COLOR_BGR2YCrCb)[:,:,0])
+    else:
+        for img in imgs:
+            ycrcb_sum += cv2.cvtColor(img,cv2.COLOR_BGR2YCrCb)[:,:,0]
+    ycrcb_sum /= len(imgs)*1.0
+    return np.asarray(np.round(ycrcb_sum),dtype=np.uint8)
+
+def cr_mean(imgs,equalize=False):
+    cr_sum = np.zeros((imgs[0].shape[0],imgs[0].shape[1]),dtype=float)
+    if equalize:
+        for img in imgs:
+            cr_sum += cv2.equalizeHist(cv2.cvtColor(img,cv2.COLOR_BGR2YCrCb)[:,:,1])
+    else:
+        for img in imgs:
+            cr_sum += cv2.cvtColor(img,cv2.COLOR_BGR2YCrCb)[:,:,1]
+    cr_sum /= len(imgs)*1.0
+    return np.asarray(np.round(cr_sum),dtype=np.uint8)
+
+def cb_mean(imgs,equalize=False):
+    cb_sum = np.zeros((imgs[0].shape[0],imgs[0].shape[1]),dtype=float)
+    if equalize:
+        for img in imgs:
+            cb_sum += cv2.equalizeHist(cv2.cvtColor(img,cv2.COLOR_BGR2YCrCb)[:,:,2])
+    else:
+        for img in imgs:
+            cb_sum += cv2.cvtColor(img,cv2.COLOR_BGR2YCrCb)[:,:,2]
+    cb_sum /= len(imgs)*1.0
+    return np.asarray(np.round(cb_sum),dtype=np.uint8)
+
+def color_enhance(img,hmean,smean,amount=1.0):
+    cvt = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
+    diff       = np.asarray(hmean,dtype=int)-np.asarray(cvt[:,:,0],dtype=int)
+    corr       = np.asarray(np.round(diff*amount),dtype=int)
+    cvt[:,:,0] = np.asarray(np.asarray(cvt[:,:,0],dtype=int)+corr,dtype=np.uint8)
+    diff       = np.asarray(smean,dtype=int)-np.asarray(cvt[:,:,1],dtype=int)
+    corr       = np.asarray(np.round(diff*amount),dtype=int)
+    cvt[:,:,1] = np.asarray(np.asarray(cvt[:,:,1],dtype=int)+corr,dtype=np.uint8)
+    return cv2.cvtColor(cvt,cv2.COLOR_HSV2BGR)
+
+def luma_enhance(img,lmean,amount=1.0,winsize=9,advanced=False):
+    cvt          = cv2.cvtColor(img,cv2.COLOR_BGR2YCrCb)
+    diff         = np.asarray(lmean,dtype=int)-np.asarray(cvt[:,:,0],dtype=int)
+    if advanced:
+        pos              = np.zeros(diff.shape,dtype=np.uint8)
+        pos[diff>0]      = diff[diff>0]
+        neg              = np.zeros(diff.shape,dtype=np.uint8)
+        neg[diff<0]      = np.abs(diff[diff<0])
+        lmean_pad        = np.zeros_like(img)
+        lmean_pad[:,:,0] = lmean
+        lmean_pad = cv2.cvtColor(lmean_pad,cv2.COLOR_YCrCb2BGR)
+        flow = luma_dense_optical_flow(lmean_pad,img,winsize=winsize)[:,:,2]
+        pos_corr = np.asarray(np.round(pos*amount*np.invert(flow)/255.0),dtype=np.uint8)
+        neg_corr = -1*np.asarray(np.round(pos*amount*np.invert(flow)/255.0),dtype=int)
+        cvt[:,:,0] = np.asarray(np.asarray(cvt[:,:,0],dtype=int)+pos_corr+neg_corr,dtype=np.uint8)
+    else:
+        corr = np.asarray(np.round(diff*amount),dtype=int)
+        cvt[:,:,0] = np.asarray(np.asarray(cvt[:,:,0],dtype=int)+corr,dtype=np.uint8)
+    cvt = cv2.cvtColor(cvt, cv2.COLOR_YCrCb2BGR)
+    return cvt
+
+def chroma_enhance(img,crmean,cbmean,amount=1.0):
+    cvt = cv2.cvtColor(img,cv2.COLOR_BGR2YCrCb)
+    cr_diff = np.asarray(crmean,dtype=int)-np.asarray(cvt[:,:,1],dtype=int)
+    cr_corr = np.asarray(np.round(cr_diff*amount),dtype=int)
+    cb_diff = np.asarray(cbmean,dtype=int)-np.asarray(cvt[:,:,2],dtype=int)
+    cb_corr = np.asarray(np.round(cb_diff*amount),dtype=int)
+    cvt[:,:,1] = np.asarray(np.asarray(cvt[:,:,1],dtype=int)+cr_corr,dtype=np.uint8)
+    cvt[:,:,2] = np.asarray(np.asarray(cvt[:,:,2],dtype=int)+cb_corr,dtype=np.uint8)
+    return cv2.cvtColor(cvt,cv2.COLOR_YCrCb2BGR)
+
+def hue_diff(img1,img2):
+    hue1 = cv2.cvtColor(img1,cv2.COLOR_BGR2HSV)[:,:,0]
+    hue2 = cv2.cvtColor(img2,cv2.COLOR_BGR2HSV)[:,:,0]
+    diff = np.asarray(hue1,dtype=int)-np.asarray(hue2,dtype=int)
+    pos  = np.zeros_like(diff)
+    pos[diff>0] = diff[diff>0]
+    neg  = np.zeros_like(diff)
+    neg[diff<0] = np.abs(diff[diff<0])
+    bgr = np.zeros_like(img1)
+    bgr[:,:,2] = pos[:]
+    bgr[:,:,1] = neg[:]
+    return bgr
+
+def hue_dense_optical_flow(img1,img2,winsize=9,equalization=False):
+    prev = cv2.cvtColor(img1,cv2.COLOR_BGR2HSV)[:,:,0]
+    next = cv2.cvtColor(img2,cv2.COLOR_BGR2HSV)[:,:,0]
+    if equalization:
+        prev = cv2.equalizeHist(prev)
+        next = cv2.equalizeHist(next)
+    flow = cv2.calcOpticalFlowFarneback(prev,next,None,
+                                        pyr_scale=0.5,levels=3,winsize=winsize,
+                                        iterations=6,poly_n=7,poly_sigma=1.5,
+                                        flags=cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
+    mag,ang = cv2.cartToPolar(flow[:,:,0],flow[:,:,1])
+    hsv = np.zeros_like(img1)
+    hsv[:,:,1] = 255
+    hsv[:,:,0] = ang*(180/(np.pi/2))
+    hsv[:,:,2] = cv2.normalize(mag,None,0,255,cv2.NORM_MINMAX)
+    bgr = cv2.cvtColor(hsv,cv2.COLOR_HSV2BGR)
+    return bgr
+
+def luma_diff(img1,img2): #green is positive luma and red is negative luma
+    lum1 = cv2.cvtColor(img1,cv2.COLOR_BGR2YCrCb)[:,:,0]
+    lum2 = cv2.cvtColor(img2,cv2.COLOR_BGR2YCrCb)[:,:,0]
+    diff = np.asarray(lum1,dtype=int)-np.asarray(lum2,dtype=int)
+    pos  = np.zeros_like(diff)
+    pos[diff>0] = diff[diff>0]
+    neg  = np.zeros_like(diff)
+    neg[diff<0] = np.abs(diff[diff<0])
+    bgr = np.zeros_like(img1)
+    bgr[:,:,2] = pos[:]
+    bgr[:,:,1] = neg[:]
+    return bgr
+
+def luma_dense_optical_flow(img1,img2,winsize=9,equalization=True):
+    prev = cv2.cvtColor(img1,cv2.COLOR_BGR2YCrCb)[:,:,0]
+    next = cv2.cvtColor(img2,cv2.COLOR_BGR2YCrCb)[:,:,0]
+    if equalization:
+        prev = cv2.equalizeHist(prev)
+        next = cv2.equalizeHist(next)
+    flow = cv2.calcOpticalFlowFarneback(prev,next,None,
+                                        pyr_scale=0.5,levels=5,winsize=winsize,
+                                        iterations=6,poly_n=7,poly_sigma=1.5,
+                                        flags=cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
+    mag,ang = cv2.cartToPolar(flow[:,:,0],flow[:,:,1])
+    hsv = np.zeros_like(img1)
+    hsv[:,:,1] = 255
+    hsv[:,:,0] = ang*(180/(np.pi/2))
+    hsv[:,:,2] = cv2.normalize(mag,None,0,255,cv2.NORM_MINMAX)
+    bgr = cv2.cvtColor(hsv,cv2.COLOR_HSV2BGR)
+    return bgr
+
+def sharpen(image,kernel_size=(5, 5),sigma=1.0,amount=1.0,threshold=0):
+    blurred = cv2.GaussianBlur(image,kernel_size,sigma)
+    sharpened = float(amount+1)*image - float(amount)*blurred
+    sharpened = np.maximum(sharpened, np.zeros(sharpened.shape))
+    sharpened = np.minimum(sharpened, 255 * np.ones(sharpened.shape))
+    sharpened = sharpened.round().astype(np.uint8)
+    if threshold > 0:
+        low_contrast_mask = np.absolute(image-blurred) < threshold
+        np.copyto(sharpened,image,where=low_contrast_mask)
+    return sharpened
+
+def color_equalization(img):
+    ycrcb_img = cv2.cvtColor(img,cv2.COLOR_BGR2YCR_CB)
+    img_chn   = cv2.split(ycrcb_img)
+    img_chn[0] = cv2.equalizeHist(img_chn[0])
+    cv2.merge(img_chn[0],ycrcb_img)
+    img1 = cv2.cvtColor(ycrcb_img,cv2.COLOR_YCR_CB2BGR)
+    return img1
+
+def homography(ref,img,f_num=10000,percent=0.75,pixel_dist=100.0,luma=True,orb=False,homo=None):
+    if homo is None:
+        imgA,imgB = np.copy(img),np.copy(ref)
+        if luma:
+            imgA = cv2.cvtColor(imgA,cv2.COLOR_BGR2YCrCb)[:,:,0]
+            imgB = cv2.cvtColor(imgB,cv2.COLOR_BGR2YCrCb)[:,:,0]
+        detector   = cv2.ORB_create(f_num)
+        kpts1      = detector.detect(imgA,None)
+        kpts2      = detector.detect(imgB,None)
+        if orb: descriptor = cv2.ORB_create(f_num)
+        else:   descriptor = cv2.xfeatures2d.BEBLID_create(percent)
+        kpts1,des1 = descriptor.compute(imgA,kpts1)
+        kpts2,des2 = descriptor.compute(imgB,kpts2)
+        #prefilter points that are too far away?
+        matcher    = cv2.DescriptorMatcher_create(cv2.DESCRIPTOR_MATCHER_BRUTEFORCE_HAMMING)
+        matches    = sorted(matcher.match(des1,des2,None),key=lambda x: x.distance)
+        matches    = matches[:max(1,int(round(percent*len(matches))))]
+        imatches   = cv2.drawMatches(imgA,kpts1,imgB,kpts2,matches,None)
+        pts1,pts2  = np.zeros((len(matches),2),dtype=np.float32),np.zeros((len(matches),2),dtype=np.float32)
+        for i in range(len(matches)):
+            pts1[i,:] = kpts1[matches[i].queryIdx].pt
+            pts2[i,:] = kpts2[matches[i].trainIdx].pt
+        # try to find a homography...............................
+        homo,mask = cv2.findHomography(pts1,pts2,cv2.USAC_DEFAULT)
+    if homo is not None:
+        h_pts = [[0,0],[img.shape[1],0],[img.shape[0],img.shape[1]],[0,img.shape[1]]]
+        p_pts,d_pts  = [],[]
+        for pts in h_pts:
+            col = np.ones((3,1),dtype=np.float64)
+            col[0:2,0] = pts
+            col = np.dot(homo,col)
+            col /= col[2,0]
+            p_pts += [[int(round(col[0][0])),int(round(col[1][0]))]]
+            d_pts += [np.sqrt((pts[0]-col[0][0])**2+(pts[1]-col[1][0])**2)]
+        if np.sum(d_pts)<pixel_dist:
+            img3 = cv2.warpPerspective(img,homo,(img.shape[1],img.shape[0]))
+        else: #throw away the homography
+            img3 = np.copy(img)
+            homo = None
+    else:
+        img3 = np.copy(img)
+    return img3,homo
+
+def BGR_to_l1l2l3(img):
+    cvt   = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
+    R,G,B = cv2.split(cvt)
+    r_g2  = (np.array(R,dtype=int)-np.array(G,dtype=int))**2
+    r_b2  = (np.array(R,dtype=int)-np.array(B,dtype=int))**2
+    g_b2  = (np.array(G,dtype=int)-np.array(B,dtype=int))**2
+    d     = r_g2+r_b2+g_b2
+    cvt[:,:,0] = np.asarray(np.round(255*(r_g2/(d+1e-12))),dtype=np.uint8)
+    cvt[:,:,1] = np.asarray(np.round(255*(r_b2/(d+1e-12))),dtype=np.uint8)
+    cvt[:,:,2] = np.asarray(np.round(255*(g_b2/(d+1e-12))),dtype=np.uint8)
+    return cvt
+
+def BGR_to_c1c2c3(img):
+    return True #:::TO DO:::
+
+def BGR_to_bgr(img):
+    cvt = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
+    R,G,B = cv2.split(cvt)
+    rgb_sum = np.array(R,dtype=int)+np.array(G,dtype=int)+np.array(B,dtype=int)
+    cvt[:,:,0] = np.asarray(np.round(255*B/(rgb_sum+1e-12)),dtype=np.uint8)
+    cvt[:,:,1] = np.asarray(np.round(255*G/(rgb_sum+1e-12)),dtype=np.uint8)
+    cvt[:,:,2] = np.asarray(np.round(255*R/(rgb_sum+1e-12)),dtype=np.uint8)
+    return cvt
+#image processing routines---------------------------------------------------------------------------
+
+def plot(img,size=(12,9)):
+    plt.rcParams["figure.figsize"] = size
     plt.imshow(cv2.cvtColor(img,cv2.COLOR_BGR2RGB))
     plt.show()
 
@@ -272,7 +656,60 @@ def split_diff(A,B,split=0.25):
         D[l] = abs(NS[l]/S[l]-split)
     return sum([D[d] for d in D])
 
-def partition_data_paths(in_dir,class_idx,split=0.15,seed=None,strict_test_sid=False,balance=None,verbose=True):
+#given sids to spectrum, pick the t sites that provide the best spectrum (closest to real spectrum R)
+def best_select(S,R,t,rounds=1000,verbose=False):
+    best = [1.0,[]] #best[0] is the difference 1.0 is maximal and best[1] is the set of keys
+    for j in range(rounds):
+        s  = np.random.choice(sorted(S),t,replace=False)
+        ss,sn = {r:0 for r in R},0
+        for i in range(len(s)):
+            for l in S[s[i]]:
+                ss[l] += S[s[i]][l]
+                sn += S[s[i]][l]
+        ss = {l:ss[l]/sn for l in ss}
+        diff = sum([abs(R[l]-ss[l]) for l in R])
+        if diff<best[0]: best = [diff,sorted(s)]
+    if verbose: print('best split after %s rounds had %s spectrum diff'%(rounds,best[0]))
+    return best
+
+def partition_train_test_valid(in_dir,class_idx,split=0.15,sub_sample=None,verbose=True):
+    paths = sorted(glob.glob(in_dir+'/*/*.jpg')+glob.glob(in_dir+'/*/*.JPG'))
+    S,R = {},{}
+    for i in range(len(paths)):
+        sid   = int(paths[i].rsplit('/')[-1].rsplit('_')[0])
+        label = class_idx[int(paths[i].rsplit('label_')[-1].rsplit('/')[0])]
+        if label in R: R[label] += 1
+        else:          R[label]  = 1
+        if sid in S:
+            if label in S[sid]: S[sid][label] += 1
+            else:               S[sid][label]  = 1
+        else:                   S[sid]  = {label:1}
+    R = {r:R[r]/len(paths) for r in R}
+    test_sids  = best_select(S,R,int(round(split*len(S))),verbose=verbose)[1]
+    D = {}
+    for s in S:
+        if s not in test_sids: D[s] = S[s]
+    valid_sids = best_select(D,R,int(round(0.5*split*len(S))),verbose=verbose)[1]
+    train_sids = sorted(set(sorted(S)).difference(set(test_sids).union(set(valid_sids))))
+    train,test,valid,valid_test = [],[],[],[]
+    for i in range(len(paths)):
+        sid   = int(paths[i].rsplit('/')[-1].rsplit('_')[0])
+        label = class_idx[int(paths[i].rsplit('label_')[-1].rsplit('/')[0])]
+        if sid in train_sids:   train += [paths[i]]
+        elif sid in test_sids:  test  += [paths[i]]
+        elif sid in valid_sids: valid += [paths[i]]
+    if sub_sample is not None: #fraction to sub-sample
+        train = np.random.choice(train,min(len(train),int(round(sub_sample*len(train)))),replace=False)
+        test = np.random.choice(test,min(len(test),int(round(sub_sample*len(test)))),replace=False)
+        valid = np.random.choice(valid,min(len(valid),int(round(sub_sample*len(valid)))),replace=False)
+    if verbose:
+        #rsplit('/')[-1].split('_')[1]
+        V = sorted(list(set([v.split('/')[-1].split('_')[1] for v in valid])))
+        print('validation sites selected were:%s'%V)
+    return train,valid,test
+
+def partition_data_paths(in_dir,class_idx,split=0.15,seed=None,
+                         strict_test_sid=False,balance=None,verbose=True):
     if seed is not None: np.random.seed(seed)
     L,C,LC,ls = {},{},{},set([])
     paths = sorted(glob.glob(in_dir+'/*/*.jpg')+glob.glob(in_dir+'/*/*.JPG'))
@@ -399,7 +836,7 @@ def load_data_generator(paths,class_idx,batch_size=64,gray_scale=True,norm=True,
         if norm: x = x/255.0
         yield(x,y)
 
-def get_shapes(paths,gray_scale=True):
+def get_shapes(paths,gray_scale=True): #:::TO DO::: modify to use random sampling for faster result
     if gray_scale:
         ss = [tuple(list(cv2.imread(path,cv2.IMREAD_GRAYSCALE).shape)+[1]) for path in paths]
     else:

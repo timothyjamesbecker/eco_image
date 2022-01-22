@@ -216,137 +216,140 @@ if __name__ == '__main__':
 
     with tf.device('/gpu:%s'%gpu_num):
         for i in range(len(X)):
-            if seed is None: r_seed = int(np.random.get_state()[1][0])
-            else:            r_seed = seed
-            S['params'] = X[i]
-            S['params']['seed'] = r_seed
-            print('\nstarting iteration %s : params %s'%(i+1,X[i]))
-            print('split=%s, balance=%s, strict=%s, seed=%s'%(split,X[i]['balance'],args.strict,r_seed))
-            start = time.time()
+            try:
+                if seed is None: r_seed = int(np.random.get_state()[1][0])
+                else:            r_seed = seed
+                S['params'] = X[i]
+                S['params']['seed'] = r_seed
+                print('starting iteration %s : params %s'%(i+1,X[i]))
+                print('using class labels: %s'%class_idx)
+                print('split=%s, balance=%s, strict=%s, seed=%s'%(split,X[i]['balance'],args.strict,r_seed))
+                start = time.time()
 
-            model = tf.keras.Sequential()
-            model.add(tf.keras.layers.Conv2D(X[i]['cmx'],(X[i]['kf'],X[i]['kf']),
-                                             activation='relu',input_shape=shapes[0],
-                                             padding='same',
-                                             kernel_regularizer=tf.keras.regularizers.l2(l=X[i]['decay'])))
-            if X[i]['level'] >= 2:
-                model.add(tf.keras.layers.MaxPooling2D(pool_size=(X[i]['pool'],X[i]['pool'])))
-                model.add(tf.keras.layers.Dropout(X[i]['drop']))
-                model.add(tf.keras.layers.Conv2D(X[i]['cmx'],(X[i]['kf'],X[i]['kf']),activation='relu',
+                model = tf.keras.Sequential()
+                model.add(tf.keras.layers.Conv2D(X[i]['cmx'],(X[i]['kf'],X[i]['kf']),
+                                                 activation='relu',input_shape=shapes[0],
                                                  padding='same',
                                                  kernel_regularizer=tf.keras.regularizers.l2(l=X[i]['decay'])))
-                if X[i]['level'] >= 3:
+                if X[i]['level'] >= 2:
+                    model.add(tf.keras.layers.MaxPooling2D(pool_size=(X[i]['pool'],X[i]['pool'])))
                     model.add(tf.keras.layers.Dropout(X[i]['drop']))
-                    model.add(tf.keras.layers.Conv2D(2*X[i]['cmx'],(X[i]['kf'],X[i]['kf']),activation='relu',
+                    model.add(tf.keras.layers.Conv2D(X[i]['cmx'],(X[i]['kf'],X[i]['kf']),activation='relu',
                                                      padding='same',
                                                      kernel_regularizer=tf.keras.regularizers.l2(l=X[i]['decay'])))
-                    if X[i]['level'] >= 4:
-                        model.add(tf.keras.layers.MaxPooling2D(pool_size=(X[i]['pool'],X[i]['pool'])))
+                    if X[i]['level'] >= 3:
                         model.add(tf.keras.layers.Dropout(X[i]['drop']))
                         model.add(tf.keras.layers.Conv2D(2*X[i]['cmx'],(X[i]['kf'],X[i]['kf']),activation='relu',
                                                          padding='same',
                                                          kernel_regularizer=tf.keras.regularizers.l2(l=X[i]['decay'])))
-                        if X[i]['level'] >= 5:
+                        if X[i]['level'] >= 4:
+                            model.add(tf.keras.layers.MaxPooling2D(pool_size=(X[i]['pool'],X[i]['pool'])))
                             model.add(tf.keras.layers.Dropout(X[i]['drop']))
-                            model.add(tf.keras.layers.Conv2D(4*X[i]['cmx'],(X[i]['kf'],X[i]['kf']),activation='relu',
+                            model.add(tf.keras.layers.Conv2D(2*X[i]['cmx'],(X[i]['kf'],X[i]['kf']),activation='relu',
                                                              padding='same',
                                                              kernel_regularizer=tf.keras.regularizers.l2(l=X[i]['decay'])))
-                            if X[i]['level'] >= 6:
-                                model.add(tf.keras.layers.MaxPooling2D(pool_size=(X[i]['pool'],X[i]['pool'])))
+                            if X[i]['level'] >= 5:
                                 model.add(tf.keras.layers.Dropout(X[i]['drop']))
                                 model.add(tf.keras.layers.Conv2D(4*X[i]['cmx'],(X[i]['kf'],X[i]['kf']),activation='relu',
                                                                  padding='same',
                                                                  kernel_regularizer=tf.keras.regularizers.l2(l=X[i]['decay'])))
-                                if X[i]['level'] >= 7:
+                                if X[i]['level'] >= 6:
+                                    model.add(tf.keras.layers.MaxPooling2D(pool_size=(X[i]['pool'],X[i]['pool'])))
                                     model.add(tf.keras.layers.Dropout(X[i]['drop']))
-                                    model.add(tf.keras.layers.Conv2D(2*X[i]['cmx'],(X[i]['kf'],X[i]['kf']),activation='relu',
+                                    model.add(tf.keras.layers.Conv2D(4*X[i]['cmx'],(X[i]['kf'],X[i]['kf']),activation='relu',
                                                                      padding='same',
                                                                      kernel_regularizer=tf.keras.regularizers.l2(l=X[i]['decay'])))
-                                    if X[i]['level'] >= 8:
-                                        model.add(tf.keras.layers.MaxPooling2D(pool_size=(X[i]['pool'],X[i]['pool'])))
+                                    if X[i]['level'] >= 7:
                                         model.add(tf.keras.layers.Dropout(X[i]['drop']))
                                         model.add(tf.keras.layers.Conv2D(2*X[i]['cmx'],(X[i]['kf'],X[i]['kf']),activation='relu',
                                                                          padding='same',
                                                                          kernel_regularizer=tf.keras.regularizers.l2(l=X[i]['decay'])))
-            model.add(tf.keras.layers.Flatten())
-            if X[i]['cmx']>=4:
-                model.add(tf.keras.layers.Dense(X[i]['cmx'], activation='relu',
-                                                kernel_regularizer=tf.keras.regularizers.l2(l=X[i]['decay'])))
-                model.add(tf.keras.layers.Dropout(2*X[i]['drop']))
-            model.add(tf.keras.layers.Dense(classes, activation='softmax',dtype=np.float32))
-            model.compile(loss='sparse_categorical_crossentropy',
-                          optimizer='adam',
-                          metrics=['sparse_categorical_accuracy'])
+                                        if X[i]['level'] >= 8:
+                                            model.add(tf.keras.layers.MaxPooling2D(pool_size=(X[i]['pool'],X[i]['pool'])))
+                                            model.add(tf.keras.layers.Dropout(X[i]['drop']))
+                                            model.add(tf.keras.layers.Conv2D(2*X[i]['cmx'],(X[i]['kf'],X[i]['kf']),activation='relu',
+                                                                             padding='same',
+                                                                             kernel_regularizer=tf.keras.regularizers.l2(l=X[i]['decay'])))
+                model.add(tf.keras.layers.Flatten())
+                if X[i]['cmx']>=4:
+                    model.add(tf.keras.layers.Dense(X[i]['cmx'], activation='relu',
+                                                    kernel_regularizer=tf.keras.regularizers.l2(l=X[i]['decay'])))
+                    model.add(tf.keras.layers.Dropout(2*X[i]['drop']))
+                model.add(tf.keras.layers.Dense(classes, activation='softmax',dtype=np.float32))
+                model.compile(loss='sparse_categorical_crossentropy',
+                              optimizer='adam',
+                              metrics=['sparse_categorical_accuracy'])
 
-            #Deep CNN -------------------------------------------------------------
-            if X[i]['balance'] is not None:
-                train_paths,test_paths = utils.partition_data_paths(in_dir,class_idx,balance=X[i]['balance'],split=split,
-                                                                    seed=r_seed,strict_test_sid=args.strict)
-            else:
-                train_paths,test_paths = utils.partition_data_paths(in_dir,class_idx,split=split,
-                                                                    seed=r_seed,strict_test_sid=args.strict)
-            print('%s training and %s test images being used'%(len(train_paths),len(test_paths)))
+                # seed=r_seed
+                # balance=X[i]['balance']
+                # strict_test_sid=args.strict
+                # verbose=True
+                # raise IOError
 
-            test_generator  = utils.load_data_generator(test_paths,class_idx,
-                                                        batch_size=X[i]['batch_size'],
-                                                        gray_scale=gray_scale)
+                #Deep CNN -------------------------------------------------------------
+                if X[i]['balance'] is not None:
+                    train_paths,test_paths,valid_paths = utils.partition_train_test_valid(in_dir,class_idx,sub_sample=X[i]['balance'],split=split)
+                else:
+                    train_paths, test_paths, valid_paths = utils.partition_train_test_valid(in_dir, class_idx,split=split)
+                print('%s training and %s test images being used'%(len(train_paths),len(test_paths)))
 
-            # test_generator = DataGen(test_paths,class_idx,
-            #                           batch_size=X[i]['batch_size'],
-            #                           gray_scale=gray_scale)
+                test_generator  = utils.load_data_generator(test_paths,class_idx,
+                                                            batch_size=X[i]['batch_size'],
+                                                            gray_scale=gray_scale)
 
-            eval_generator  = utils.load_data_generator(test_paths,class_idx,
-                                                        batch_size=len(test_paths),
-                                                        gray_scale=gray_scale)
+                # test_generator = DataGen(test_paths,class_idx,
+                #                           batch_size=X[i]['batch_size'],
+                #                           gray_scale=gray_scale)
 
-            # eval_generator = DataGen(test_paths,class_idx,
-            #                          batch_size=X[i]['batch_size'],
-            #                          gray_scale=gray_scale)
+                eval_generator  = utils.load_data_generator(valid_paths,class_idx,
+                                                            batch_size=len(valid_paths),
+                                                            gray_scale=gray_scale)
 
-            train_generator = utils.load_data_generator(train_paths,class_idx,
-                                                        batch_size=X[i]['batch_size'],
-                                                        gray_scale=gray_scale)
+                # eval_generator = DataGen(test_paths,class_idx,
+                #                          batch_size=X[i]['batch_size'],
+                #                          gray_scale=gray_scale)
 
-            # train_generator = DataGen(train_paths,class_idx,
-            #                          batch_size=X[i]['batch_size'],
-            #                          gray_scale=gray_scale)
+                train_generator = utils.load_data_generator(train_paths,class_idx,
+                                                            batch_size=X[i]['batch_size'],
+                                                            gray_scale=gray_scale)
 
-            #needs to be an instance of class DataGen...
-            H = model.fit_generator(train_generator,
-                                    steps_per_epoch=len(train_paths)//X[i]['batch_size'],
-                                    validation_data=test_generator,
-                                    validation_steps=len(test_paths)//X[i]['batch_size'],
-                                    epochs=X[i]['epochs'],verbose=0,workers=1)
+                # train_generator = DataGen(train_paths,class_idx,
+                #                          batch_size=X[i]['batch_size'],
+                #                          gray_scale=gray_scale)
 
-            # H = model.fit(train_generator,
-            #               epochs=X[i]['epochs'],
-            #               validation_data=test_generator,
-            #               verbose=1).history
+                H = model.fit_generator(train_generator,
+                                        steps_per_epoch=len(train_paths)//X[i]['batch_size'],
+                                        validation_data=test_generator,
+                                        validation_steps=len(test_paths)//X[i]['batch_size'],
+                                        epochs=X[i]['epochs'],verbose=0,workers=1)
 
-            stop = time.time()
-            pred,true = [],[]
-            batch_data = next(eval_generator)
-            pred += [np.argmax(x) for x in model.predict(batch_data[0])]
-            true += [x for x in batch_data[1]]
-            CM[i] = utils.confusion_matrix(pred,true,print_result=True)
-            prec,rec,f1 = utils.metrics(CM[i])
-            run_score = sum([f1[k] for k in f1])/(classes*1.0)
-            print('%s Measured CNN accuracy for %s classes using %s test images'%(run_score,classes,len(pred)))
 
-            S['score'] = run_score
-            if best_score<S['score']:
-                print('*** new best score detected, saving the model file ***')
-                shps      = '%sx%sx%s'%(shapes[0][0],shapes[0][1],shapes[0][2])
-                title     = 'class=%s cmx=%s batch=%s gray=%s in:%s'%\
-                            (class_partition,X[i]['cmx'],X[i]['batch_size'],gray_scale,shps)
-                plt_path  = 'class_%s.cmx_%s.batch_%s.gray_%s.in_%s'%\
-                            (class_partition,X[i]['cmx'],X[i]['batch_size'],str(gray_scale)[0],shps)
-                for png in glob.glob(out_dir+'/*.png'): os.remove(png)
-                utils.plot_train_test(H.history,title,out_path=out_dir+'/acc_loss.%s.png'%plt_path)
-                utils.plot_confusion_heatmap(CM[i],title,out_path=out_dir+'/conf_mat.%s.png'%plt_path)
-                best_score = S['score']
-                with open(best_score_path,'w') as f: json.dump(S,f)
-                model_path = out_dir+'/model.'+class_partition+'.hdf5'
-                model.save(model_path)
+                stop = time.time()
+                pred,true = [],[]
+                batch_data = next(eval_generator)
+                pred += [np.argmax(x) for x in model.predict(batch_data[0])]
+                true += [x for x in batch_data[1]]
+                CM[i] = utils.confusion_matrix(pred,true,print_result=True)
+                prec,rec,f1 = utils.metrics(CM[i])
+                run_score = sum([f1[k] for k in f1])/(classes*1.0)
+                print('%s Measured CNN accuracy for %s classes using %s test images'%(run_score,classes,len(pred)))
+
+                S['score'] = run_score
+                if best_score<S['score']:
+                    print('*** new best score detected, saving the model file ***')
+                    shps      = '%sx%sx%s'%(shapes[0][0],shapes[0][1],shapes[0][2])
+                    title     = 'class=%s cmx=%s batch=%s gray=%s in:%s'%\
+                                (class_partition,X[i]['cmx'],X[i]['batch_size'],gray_scale,shps)
+                    plt_path  = 'class_%s.cmx_%s.batch_%s.gray_%s.in_%s'%\
+                                (class_partition,X[i]['cmx'],X[i]['batch_size'],str(gray_scale)[0],shps)
+                    for png in glob.glob(out_dir+'/*.png'): os.remove(png)
+                    utils.plot_train_test(H.history,title,out_path=out_dir+'/acc_loss.%s.png'%plt_path)
+                    utils.plot_confusion_heatmap(CM[i],title,out_path=out_dir+'/conf_mat.%s.png'%plt_path)
+                    best_score = S['score']
+                    with open(best_score_path,'w') as f: json.dump(S,f)
+                    model_path = out_dir+'/model.'+class_partition+'.hdf5'
+                    model.save(model_path)
+            except Exception as E:
+                print('error occured: %s'%E)
         t_stop = time.time()
         print('total time was %s or %s per iteration'%(round(t_stop-t_start,2),round((t_stop-t_start)/(len(CM)*1.0),2)))

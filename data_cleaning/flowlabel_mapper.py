@@ -39,9 +39,13 @@ with open(flow_label,'r') as f:
         else:
             SC[sid] = {cat:[file]}
 
+good,error = [],[]
 for c in C:
+    if not os.path.exists(out_dir+'/label_%s/'%c): os.mkdir(out_dir+'/label_%s/'%c)
     for i in range(len(C[c])):
         in_path  = in_dir+C[c][i]
         out_path = out_dir+'/label_%s/'%c+C[c][i].rsplit('/')[-1]
-        if not os.path.exists(out_dir+'/label_%s/'%c): os.mkdir(out_dir+'/label_%s/'%c)
-        if os.path.exists(in_path): os.rename(in_path,out_path)
+        if os.path.exists(in_path): good  += [in_path]; os.rename(in_path,out_path)
+        else:                       error += [in_path]
+print('%s image paths had valid mappings and were moved...'%len(good))
+print('%s image paths were not mapped to a label and were not moved'%(error))
