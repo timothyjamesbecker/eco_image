@@ -92,7 +92,7 @@ def get_rotation_pad(img,luma_thresh=10):
 #utils------------------------------------------------------------------------
 
 #tests:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-def chroma_dropped(img,cutoff=5):
+def chroma_dropped(img,cutoff=3):
     dropped = False
     cvt = cv2.cvtColor(img,cv2.COLOR_BGR2YCrCb)
     cr_std = np.std(cvt[:,:,1])
