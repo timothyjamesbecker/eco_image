@@ -236,6 +236,7 @@ def process_image_partitions(C,params):
     equalize,advanced    = params['equalize'],params['advanced']
     mean,sharp,winsize   = params['mean'],params['sharp'],params['winsize']
     pad,d_min,pixel_dist = params['pad'],params['d_min'],params['pixel_dist']
+    write_labels         = params['write_labels']
     for sid in C:
         for deploy in sorted(C[sid]):
             n = len(C[sid][deploy])
@@ -251,8 +252,11 @@ def process_image_partitions(C,params):
 
             #[3] find events and partition the images on quality::::::::::::::::::::::::::::::::::::::::
             events = detect_events(raw_imgs,ref)
+            ls = {i:C[sid][deploy][i][1] for i in range(len(C[sid][deploy]))} #get original labels if they exist
             sharp_imgs = {}
             for i in raw_imgs:
+                if i in ls: label = ls[i]
+                else:       label = 0
                 if i not in events['bw']:
                     if i not in events['blurred']:
                         if i not in events['flared']:
@@ -262,31 +266,36 @@ def process_image_partitions(C,params):
                                 else:
                                     light_dir = out_dir+'/light'
                                     if not os.path.exists(light_dir): os.mkdir(light_dir)
-                                    img_name = light_dir+'/S%s_D%s_I%s.JPG'%(sid,deploy,i+1)
+                                    if write_labels: img_name = light_dir+'/S%s_D%s_I%s_L%s.JPG'%(sid,deploy,i+1,label)
+                                    else:            img_name = light_dir+'/S%s_D%s_I%s.JPG'%(sid,deploy,i+1)
                                     cv2.imwrite(img_name,raw_imgs[i])
                                     print('LLL sid=%s, deploy=%s: image %s was too light LLL'%(sid,deploy,i))
                             else:
                                 dark_dir = out_dir+'/dark'
                                 if not os.path.exists(dark_dir): os.mkdir(dark_dir)
-                                img_name = dark_dir+'/S%s_D%s_I%s.JPG'%(sid,deploy,i+1)
+                                if write_labels: img_name = dark_dir+'/S%s_D%s_I%s_L%s.JPG'%(sid,deploy,i+1,label)
+                                else:            img_name = dark_dir+'/S%s_D%s_I%s.JPG'%(sid,deploy,i+1)
                                 cv2.imwrite(img_name,raw_imgs[i])
                                 print('DDD sid=%s, deploy=%s: image %s was too dark DDD'%(sid,deploy,i))
                         else:
                             flared_dir = out_dir+'/flared'
                             if not os.path.exists(flared_dir): os.mkdir(flared_dir)
-                            img_name = flared_dir+'/S%s_D%s_I%s.JPG'%(sid,deploy,i+1)
+                            if write_labels: img_name = flared_dir+'/S%s_D%s_I%s_L%s.JPG'%(sid,deploy,i+1,label)
+                            else:            img_name = flared_dir+'/S%s_D%s_I%s.JPG'%(sid,deploy,i+1)
                             cv2.imwrite(img_name,raw_imgs[i])
                             print('FFF sid=%s, deploy=%s: image %s was too flared FFF'%(sid,deploy,i))
                     else:
                         blurred_dir = out_dir+'/blurred'
                         if not os.path.exists(blurred_dir): os.mkdir(blurred_dir)
-                        img_name = blurred_dir+'/S%s_D%s_I%s.JPG'%(sid,deploy,i+1)
+                        if write_labels: img_name = blurred_dir+'/S%s_D%s_I%s_L%s.JPG'%(sid,deploy,i+1,label)
+                        else:            img_name = blurred_dir+'/S%s_D%s_I%s.JPG'%(sid,deploy,i+1)
                         cv2.imwrite(img_name,raw_imgs[i])
                         print('BBB sid=%s, deploy=%s: image %s was too blurred BBB'%(sid,deploy,i))
                 else:
                     bw_dir = out_dir+'/bw'
                     if not os.path.exists(bw_dir): os.mkdir(bw_dir)
-                    img_name = bw_dir+'/S%s_D%s_I%s.JPG'%(sid,deploy,i+1)
+                    if write_labels: img_name = bw_dir+'/S%s_D%s_I%s_L%s.JPG'%(sid,deploy,i+1,label)
+                    else:            img_name = bw_dir+'/S%s_D%s_I%s.JPG'%(sid,deploy,i+1)
                     cv2.imwrite(img_name,raw_imgs[i])
                     print('BW sid=%s, deploy=%s: image %s was chroma dropped BW'%(sid,deploy,i))
 
@@ -298,8 +307,10 @@ def process_image_partitions(C,params):
             #[5] complete temporal clusterings and final luma+, hue+ enhancements:::::::::::::::::::::::::::::::::::::::
             ts = {i:C[sid][deploy][i][0] for i in range(len(C[sid][deploy]))}
             NN = temporal_nn_imgs(imgs,events,ts,hours=enh_hrs)
-            if agg_hrs<=1:
+            if agg_hrs<=1: #have regular potential enhanced images here, lets apply labels if they exist and
                 for i in imgs:
+                    if i in ls: label = ls[i]
+                    else:       label = 0
                     if len(NN[i])>0:
                         lmean     = utils.sharpen(utils.luma_mean([imgs[x] for x in NN[i]],equalize),amount=sharp)
                         luma      = utils.luma_enhance(imgs[i],lmean,amount=mean,winsize=winsize,advanced=advanced)
@@ -309,27 +320,22 @@ def process_image_partitions(C,params):
 
                         passed_dir = out_dir+'/passed'
                         if not os.path.exists(passed_dir): os.mkdir(passed_dir)
-                        if i in events['bw']:
-                            img_name = passed_dir+'/S%s_D%s_I%s_HE.JPG'%(sid,deploy,i)
-                            cv2.imwrite(img_name,hue)
-                            # img_name = passed_dir+'/S%s_D%s_I%s_N.JPG'%(sid,deploy,i)
-                            # cv2.imwrite(img_name,imgs[i])
-                        else:
-                            img_name = passed_dir+'/S%s_D%s_I%s_LE.JPG'%(sid,deploy,i)
-                            cv2.imwrite(img_name,luma)
-                            img_name = passed_dir+'/S%s_D%s_I%s_HE.JPG'%(sid,deploy,i)
-                            cv2.imwrite(img_name,hue)
-                            # img_name = passed_dir+'/S%s_D%s_I%s_N.JPG'%(sid,deploy,i)
-                            # cv2.imwrite(img_name,imgs[i])
+                        # img_name = passed_dir+'/S%s_D%s_I%s_LE_L%s.JPG'%(sid,deploy,i,label)
+                        # cv2.imwrite(img_name,luma)
+                        if write_labels: img_name = passed_dir+'/S%s_D%s_I%s_HE_L%s.JPG'%(sid,deploy,i,label)
+                        else:            img_name = passed_dir+'/S%s_D%s_I%s_HE.JPG'%(sid,deploy,i)
+                        cv2.imwrite(img_name,hue)
+                        # img_name = passed_dir+'/S%s_D%s_I%s_N.JPG'%(sid,deploy,i)
+                        # cv2.imwrite(img_name,imgs[i])
                     else:
                         passed_dir = out_dir+'/passed'
                         if not os.path.exists(passed_dir): os.mkdir(passed_dir)
-                        img_name = passed_dir+'/S%s_D%s_I%s_N.JPG'%(sid,deploy,i)
+                        if write_labels: img_name = passed_dir+'/S%s_D%s_I%s_NE_L%s.JPG'%(sid,deploy,i,label)
+                        else:            img_name = passed_dir+'/S%s_D%s_I%s_NE%s.JPG'%(sid,deploy,i)
                         cv2.imwrite(img_name,imgs[i])
                         print('can not enhance img=%s,sid=%s,deploy=%s'%(i,sid,deploy))
             else: #aggregation of the images will generate a JSON mapping file...
                 print('aggregation hours is > 1, proceeding to aggregate images by %s hours'%agg_hrs)
-                ls = {i:C[sid][deploy][i][1] for i in range(len(C[sid][deploy]))}
                 weekday = {0:'Mon',1:'Tues',2:'Wed',3:'Thur',4:'Fri',5:'Sat',6:'Sun'}
                 AL = select_aggregate_imgs(imgs,ts,ls=ls,hours=agg_hrs)
                 for d in sorted(AL):
@@ -417,7 +423,7 @@ if __name__ == '__main__':
     -Temporal k-NN luma and chroma enhancement
     -Over,Under,B&W,Flared,Blurred,Rotated Detection
     
-    (c) Timothy James Becker 10-19-19 to 01-22-22
+    (c) Timothy James Becker 10-19-19 to 02-06-22
     ------------------------------------------------------------
     Given input directory of temporal stream images with EXIF metadata,
     detects and partitions images into usable and unusable folders.
@@ -437,6 +443,7 @@ if __name__ == '__main__':
     parser.add_argument('--agg_hrs', type=int, help='number of hours per day to aggregate\t[2]')
     parser.add_argument('--equalize',action='store_true',help='luma channel histogram equalization\t[False]')
     parser.add_argument('--json_img_map',action='store_true',help='generate a temporal weekly json image map\t[False]')
+    parser.add_argument('--label_sub_folders',action='store_true',help='generate subfolders for passed images\t[False]')
     parser.add_argument('--advanced',action='store_true',help='luma differential corrected by dense optical flow\t[False]')
     parser.add_argument('--winsize',type=int,help='kernel window for optical flow if using advanced\t[2]')
     parser.add_argument('--cpus',type=int,help='CPU cores to use for || processing\t[1]')
@@ -463,7 +470,7 @@ if __name__ == '__main__':
     else: enh_hrs = 0
     if args.agg_hrs is not None:
         agg_hrs = args.agg_hrs
-    else: enh_hrs = 0
+    else: agg_hrs = 0
     if args.equalize:
         equalize = True
     else: equalize = False
@@ -480,7 +487,8 @@ if __name__ == '__main__':
     #sids = [19022]#,14434,14523,15244]
 
     params = {'width':width,'height':height,'enh_hrs':enh_hrs,'agg_hrs':agg_hrs,'equalize':equalize,'advanced':advanced,
-              'mean':mean,'sharp':sharp,'winsize':winsize,'pad':0.2,'d_min':2.0,'pixel_dist':4*height//10}
+              'mean':mean,'sharp':sharp,'winsize':winsize,'pad':0.2,'d_min':2.0,'pixel_dist':4*height//10,
+              'write_labels':args.label_sub_folders}
     print('using params:%s'%params)
     raw_path = in_dir+'/*/*.JPG'
     raw_paths = sorted(glob.glob(raw_path),key=get_sid)
@@ -566,3 +574,27 @@ if __name__ == '__main__':
     if args.json_img_map:
         print('preparing json image map...')
         generate_img_map_json(out_dir,out_dir+'/img_map.json')
+
+    if args.label_sub_folders:
+        I = {}
+        for img_path in glob.glob(out_dir+'/passed*/*.JPG'):
+            img_name = img_path.split('/')[-1]
+            label = int(img_name.split('.JPG')[0].split('_L')[-1])
+            if label in I: I[label] += [img_path]
+            else:          I[label]  = [img_path]
+        for l in I: I[l] = sorted(I[l])
+
+        #print out the ratio of passed/total
+        for l in sorted(I):
+            in_labels = len(glob.glob(in_dir+'/label_%s/*.JPG'%l))
+            print('label=%s:  %s/%s or %s passed the filtration process'%(l,len(I[l]),in_labels,round(len(I[l])/in_labels,2)))
+
+        for l in sorted(I):
+            img_dir = '/'.join(I[l][0].split('/')[:-1])+'/label_%s/'%l
+            if not os.path.exists(img_dir): os.mkdir(img_dir)
+            for i in range(len(I[l])):
+                img_name = I[l][i].split('/')[-1]
+                os.rename(I[l][i],img_dir+img_name)
+
+
+

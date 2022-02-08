@@ -676,7 +676,7 @@ def partition_train_test_valid(in_dir,class_idx,split=0.15,sub_sample=None,verbo
     paths = sorted(glob.glob(in_dir+'/*/*.jpg')+glob.glob(in_dir+'/*/*.JPG'))
     S,R = {},{}
     for i in range(len(paths)):
-        sid   = int(paths[i].rsplit('/')[-1].rsplit('_')[0])
+        sid   = int(paths[i].rsplit('/')[-1].rsplit('_')[0].rsplit('S')[-1])
         label = class_idx[int(paths[i].rsplit('label_')[-1].rsplit('/')[0])]
         if label in R: R[label] += 1
         else:          R[label]  = 1
@@ -693,7 +693,7 @@ def partition_train_test_valid(in_dir,class_idx,split=0.15,sub_sample=None,verbo
     train_sids = sorted(set(sorted(S)).difference(set(test_sids).union(set(valid_sids))))
     train,test,valid,valid_test = [],[],[],[]
     for i in range(len(paths)):
-        sid   = int(paths[i].rsplit('/')[-1].rsplit('_')[0])
+        sid   = int(paths[i].rsplit('/')[-1].rsplit('_')[0].rsplit('S')[-1])
         label = class_idx[int(paths[i].rsplit('label_')[-1].rsplit('/')[0])]
         if sid in train_sids:   train += [paths[i]]
         elif sid in test_sids:  test  += [paths[i]]
@@ -714,7 +714,7 @@ def partition_data_paths(in_dir,class_idx,split=0.15,seed=None,
     L,C,LC,ls = {},{},{},set([])
     paths = sorted(glob.glob(in_dir+'/*/*.jpg')+glob.glob(in_dir+'/*/*.JPG'))
     for i in range(len(paths)):
-        sid   = int(paths[i].rsplit('/')[-1].rsplit('_')[0])
+        sid   = int(paths[i].rsplit('/')[-1].rsplit('_')[0].rsplit('S')[-1])
         label = class_idx[int(paths[i].rsplit('label_')[-1].rsplit('/')[0])]
         if sid in L:       L[sid] += [[i,label]]
         else:              L[sid]  = [[i,label]]
@@ -902,41 +902,89 @@ def metrics(M,offset=1):
     return P,R,F1
 
 def plot_train_test(history,title='Model ACC+LOSS',ylim=[0.0,1.0],out_path=None,fontsize=8):
-    ks   = history.keys()
-    for k in ks:
-        if k.find('val_')>=0 and k.find('val_loss')<0:
-            ac = k.rsplit('val_')[-1]
-            print('ploting %s'%ac)
-    plt.plot(history[ac])
-    plt.plot(history['val_%s'%ac])
-    plt.plot(history['loss'])
-    plt.plot(history['val_loss'])
-    axes = plt.gca()
-    axes.set_ylim(ylim)
-    plt.title(title,fontsize=fontsize)
-    plt.ylabel('Accuracy & Loss Value')
-    plt.xlabel('Epoch')
-    plt.legend(['TRN-ACC','TST-ACC','TRN-LOSS','TST-LOSS'], loc='lower left')
-    if out_path is not None: plt.savefig(out_path); plt.close()
-    else: plt.show()
+    try:
+        ks   = history.keys()
+        for k in ks:
+            if k.find('val_')>=0 and k.find('val_loss')<0:
+                ac = k.rsplit('val_')[-1]
+                print('ploting %s'%ac)
+        plt.plot(history[ac])
+        plt.plot(history['val_%s'%ac])
+        plt.plot(history['loss'])
+        plt.plot(history['val_loss'])
+        axes = plt.gca()
+        axes.set_ylim(ylim)
+        plt.title(title,fontsize=fontsize)
+        plt.ylabel('Accuracy & Loss Value')
+        plt.xlabel('Epoch')
+        plt.legend(['TRN-ACC','TST-ACC','TRN-LOSS','TST-LOSS'], loc='lower left')
+        if out_path is not None: plt.savefig(out_path); plt.close()
+        else: plt.show()
+    except Exception as E:
+        try:
+            print('error with matplotlib, trying to use Agg front end...')
+            matplotlib.use('Agg')
+            ks   = history.keys()
+            for k in ks:
+                if k.find('val_')>=0 and k.find('val_loss')<0:
+                    ac = k.rsplit('val_')[-1]
+                    print('ploting %s'%ac)
+            plt.plot(history[ac])
+            plt.plot(history['val_%s'%ac])
+            plt.plot(history['loss'])
+            plt.plot(history['val_loss'])
+            axes = plt.gca()
+            axes.set_ylim(ylim)
+            plt.title(title,fontsize=fontsize)
+            plt.ylabel('Accuracy & Loss Value')
+            plt.xlabel('Epoch')
+            plt.legend(['TRN-ACC','TST-ACC','TRN-LOSS','TST-LOSS'], loc='lower left')
+            if out_path is not None: plt.savefig(out_path); plt.close()
+            else: plt.show()
+        except Exception as E:
+            print('error with matplotlib and Agg, failed plotting model info')
     return True
 
 def plot_confusion_heatmap(confusion_matrix,title,offset=1,out_path=None,fontsize=8):
-    xs = set([])
-    for i,j in confusion_matrix:
-        xs.add(i+offset)
-        xs.add(j+offset)
-    sx = sorted(list(xs))
-    h = np.zeros((len(sx),len(sx)),dtype=float)
-    for i,j in confusion_matrix:
-        h[i,j] = confusion_matrix[(i,j)]
-    plt.imshow(h,cmap='Greys')
-    plt.xticks(range(len(sx)),sx)
-    plt.yticks(range(len(sx)),sx)
-    plt.title(title,fontsize=fontsize)
-    plt.ylabel('Test Class')
-    plt.xlabel('Pred Class')
-    plt.colorbar()
-    if out_path is not None: plt.savefig(out_path); plt.close()
-    else: plt.show()
+    try:
+        xs = set([])
+        for i,j in confusion_matrix:
+            xs.add(i+offset)
+            xs.add(j+offset)
+        sx = sorted(list(xs))
+        h = np.zeros((len(sx),len(sx)),dtype=float)
+        for i,j in confusion_matrix:
+            h[i,j] = confusion_matrix[(i,j)]
+        plt.imshow(h,cmap='Greys')
+        plt.xticks(range(len(sx)),sx)
+        plt.yticks(range(len(sx)),sx)
+        plt.title(title,fontsize=fontsize)
+        plt.ylabel('Test Class')
+        plt.xlabel('Pred Class')
+        plt.colorbar()
+        if out_path is not None: plt.savefig(out_path); plt.close()
+        else: plt.show()
+    except Exception as E:
+        try:
+            print('error with matplotlib, trying to use Agg front end...')
+            matplotlib.use('Agg')
+            xs = set([])
+            for i,j in confusion_matrix:
+                xs.add(i+offset)
+                xs.add(j+offset)
+            sx = sorted(list(xs))
+            h = np.zeros((len(sx),len(sx)),dtype=float)
+            for i,j in confusion_matrix:
+                h[i,j] = confusion_matrix[(i,j)]
+            plt.imshow(h,cmap='Greys')
+            plt.xticks(range(len(sx)),sx)
+            plt.yticks(range(len(sx)),sx)
+            plt.title(title,fontsize=fontsize)
+            plt.ylabel('Test Class')
+            plt.xlabel('Pred Class')
+            plt.colorbar()
+            if out_path is not None: plt.savefig(out_path); plt.close()
+            else: plt.show()
+        except Exception as E:
+            print('error with matplotlib and Agg, failed plotting heatmap')
     return True

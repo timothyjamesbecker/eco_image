@@ -100,7 +100,7 @@ if __name__ == '__main__':
     des="""
     ---------------------------------------------------
     TensorFlow/Keras based hyper-param modeler
-    Timothy James Becker 11-04-19 to 11-12-21
+    Timothy James Becker 11-04-19 to 02-05-22
     ---------------------------------------------------
     Given input directory with partitioned labels with images inside:
     in_dir/label_1, in_dir/label_2, ...
