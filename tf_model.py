@@ -342,13 +342,13 @@ if __name__ == '__main__':
                                 (class_partition,X[i]['cmx'],X[i]['batch_size'],gray_scale,shps)
                     plt_path  = 'class_%s.cmx_%s.batch_%s.gray_%s.in_%s'%\
                                 (class_partition,X[i]['cmx'],X[i]['batch_size'],str(gray_scale)[0],shps)
-                    for png in glob.glob(out_dir+'/*.png'): os.remove(png)
-                    utils.plot_train_test(H.history,title,out_path=out_dir+'/acc_loss.%s.png'%plt_path)
-                    utils.plot_confusion_heatmap(CM[i],title,out_path=out_dir+'/conf_mat.%s.png'%plt_path)
                     best_score = S['score']
                     with open(best_score_path,'w') as f: json.dump(S,f)
                     model_path = out_dir+'/model.'+class_partition+'.hdf5'
                     model.save(model_path)
+                    for png in glob.glob(out_dir+'/*.png'): os.remove(png)
+                    utils.plot_train_test(H.history,title,out_path=out_dir+'/acc_loss.%s.png'%plt_path)
+                    utils.plot_confusion_heatmap(CM[i],title,out_path=out_dir+'/conf_mat.%s.png'%plt_path)
             except Exception as E:
                 print('error occured: %s'%E)
         t_stop = time.time()
