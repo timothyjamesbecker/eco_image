@@ -1,19 +1,19 @@
 import os
-import sys
 import exifread
-import piexif
 import cv2
 import glob
-import math
 import datetime as dt
 import numpy as np
 import matplotlib
-# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import multiprocessing as mp
 
 #utils------------------------------------------------------------------------
-import utils
+#import utils
 
+result_list = []
+def collect_results(result):
+    result_list.append(result)
 
 def local_path():
     return '/'.join(os.path.abspath(__file__).split('/')[:-1])+'/'
@@ -156,7 +156,7 @@ def lens_flare(img,pixel_size=None,verbose=False):
     if verbose:
         blank = np.zeros((1, 1))
         blobs = cv2.drawKeypoints(img,kpts,np.zeros((1,1)),(0,0,255),cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-        utils.plot(blobs)
+        plot(blobs)
     return flare
 
 #make more robust with hue rotation ???
@@ -988,3 +988,258 @@ def plot_confusion_heatmap(confusion_matrix,title,offset=1,out_path=None,fontsiz
         except Exception as E:
             print('error with matplotlib and Agg, failed plotting heatmap')
     return True
+
+def worker_image_partitions(C,params):
+    width,height         = params['width'],params['height']
+    enh_hrs,agg_hrs      = params['enh_hrs'],params['agg_hrs']
+    equalize,advanced    = params['equalize'],params['advanced']
+    mean,sharp,winsize   = params['mean'],params['sharp'],params['winsize']
+    pad,d_min,pixel_dist = params['pad'],params['d_min'],params['pixel_dist']
+    write_labels         = params['write_labels']
+    out_dir              = params['out_dir']
+    for sid in C:
+        for deploy in sorted(C[sid]):
+            n = len(C[sid][deploy])
+            print('processing %s paths for sid=%s, deploy=%s'%(n,sid,deploy))
+            #[1] find a starting reference image point::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+            ref = skip_to_ref([e[-1] for e in C[sid][deploy]],width=width,height=height) #[datetime,label,camera,path]
+            #[2] read images and detect image events::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+            raw_imgs = {}
+            for i in range(n):
+                raw_imgs[i] = read_crop_resize(C[sid][deploy][i][-1],height=height,width=width)
+            #[3] find events and partition the images on quality::::::::::::::::::::::::::::::::::::::::
+            events = detect_events(raw_imgs,ref)
+            ls = {i:C[sid][deploy][i][1] for i in range(len(C[sid][deploy]))} #get original labels if they exist
+            sharp_imgs = {}
+            for i in raw_imgs:
+                if i in ls: label = ls[i]
+                else:       label = 0
+                if i not in events['bw']:
+                    if i not in events['blurred']:
+                        if i not in events['flared']:
+                            if i not in events['dark']:
+                                if i not in events['light']:
+                                    sharp_imgs[i] = raw_imgs[i] #passed filters
+                                else:
+                                    light_dir = out_dir+'/light'
+                                    if not os.path.exists(light_dir): os.mkdir(light_dir)
+                                    if write_labels: img_name = light_dir+'/S%s_D%s_I%s_L%s.JPG'%(sid,deploy,i+1,label)
+                                    else:            img_name = light_dir+'/S%s_D%s_I%s.JPG'%(sid,deploy,i+1)
+                                    cv2.imwrite(img_name,raw_imgs[i])
+                                    print('LLL sid=%s, deploy=%s: image %s was too light LLL'%(sid,deploy,i))
+                            else:
+                                dark_dir = out_dir+'/dark'
+                                if not os.path.exists(dark_dir): os.mkdir(dark_dir)
+                                if write_labels: img_name = dark_dir+'/S%s_D%s_I%s_L%s.JPG'%(sid,deploy,i+1,label)
+                                else:            img_name = dark_dir+'/S%s_D%s_I%s.JPG'%(sid,deploy,i+1)
+                                cv2.imwrite(img_name,raw_imgs[i])
+                                print('DDD sid=%s, deploy=%s: image %s was too dark DDD'%(sid,deploy,i))
+                        else:
+                            flared_dir = out_dir+'/flared'
+                            if not os.path.exists(flared_dir): os.mkdir(flared_dir)
+                            if write_labels: img_name = flared_dir+'/S%s_D%s_I%s_L%s.JPG'%(sid,deploy,i+1,label)
+                            else:            img_name = flared_dir+'/S%s_D%s_I%s.JPG'%(sid,deploy,i+1)
+                            cv2.imwrite(img_name,raw_imgs[i])
+                            print('FFF sid=%s, deploy=%s: image %s was too flared FFF'%(sid,deploy,i))
+                    else:
+                        blurred_dir = out_dir+'/blurred'
+                        if not os.path.exists(blurred_dir): os.mkdir(blurred_dir)
+                        if write_labels: img_name = blurred_dir+'/S%s_D%s_I%s_L%s.JPG'%(sid,deploy,i+1,label)
+                        else:            img_name = blurred_dir+'/S%s_D%s_I%s.JPG'%(sid,deploy,i+1)
+                        cv2.imwrite(img_name,raw_imgs[i])
+                        print('BBB sid=%s, deploy=%s: image %s was too blurred BBB'%(sid,deploy,i))
+                else:
+                    bw_dir = out_dir+'/bw'
+                    if not os.path.exists(bw_dir): os.mkdir(bw_dir)
+                    if write_labels: img_name = bw_dir+'/S%s_D%s_I%s_L%s.JPG'%(sid,deploy,i+1,label)
+                    else:            img_name = bw_dir+'/S%s_D%s_I%s.JPG'%(sid,deploy,i+1)
+                    cv2.imwrite(img_name,raw_imgs[i])
+                    print('BW sid=%s, deploy=%s: image %s was chroma dropped BW'%(sid,deploy,i))
+            #[4] apply fixes for those that can be fixed::::::::::::::::::::::::::::::::::::::::::::::::::::
+            trans_imgs = apply_homography(ref,sharp_imgs,events['rotated'],pixel_dist)
+            imgs       = pad_imgs(trans_imgs,events['rotated'],width=width,height=height,pad=pad)
+            print('preprocessed %s images (partitioned on dark,light,b&w,rotation,blur events)...'%len(imgs))
+
+            #[5] complete temporal clusterings and final luma+, hue+ enhancements:::::::::::::::::::::::::::::::::::::::
+            ts = {i:C[sid][deploy][i][0] for i in range(len(C[sid][deploy]))}
+            NN = temporal_nn_imgs(imgs,events,ts,hours=enh_hrs)
+            if agg_hrs<=1: #have regular potential enhanced images here, lets apply labels if they exist and
+                for i in imgs:
+                    if i in ls: label = ls[i]
+                    else:       label = 0
+                    if len(NN[i])>0:
+                        lmean     = sharpen(luma_mean([imgs[x] for x in NN[i]],equalize),amount=sharp)
+                        luma      = luma_enhance(imgs[i],lmean,amount=mean,winsize=winsize,advanced=advanced)
+                        hmean     = hue_mean([imgs[x] for x in NN[i]])
+                        smean     = sat_mean([imgs[x] for x in NN[i]])
+                        hue       = color_enhance(luma,hmean,smean,amount=mean)
+
+                        passed_dir = out_dir+'/passed'
+                        if not os.path.exists(passed_dir): os.mkdir(passed_dir)
+                        # img_name = passed_dir+'/S%s_D%s_I%s_LE_L%s.JPG'%(sid,deploy,i,label)
+                        # cv2.imwrite(img_name,luma)
+                        if write_labels: img_name = passed_dir+'/S%s_D%s_I%s_HE_L%s.JPG'%(sid,deploy,i,label)
+                        else:            img_name = passed_dir+'/S%s_D%s_I%s_HE.JPG'%(sid,deploy,i)
+                        cv2.imwrite(img_name,hue)
+                        # img_name = passed_dir+'/S%s_D%s_I%s_N.JPG'%(sid,deploy,i)
+                        # cv2.imwrite(img_name,imgs[i])
+                    else:
+                        passed_dir = out_dir+'/passed'
+                        if not os.path.exists(passed_dir): os.mkdir(passed_dir)
+                        if write_labels: img_name = passed_dir+'/S%s_D%s_I%s_NE_L%s.JPG'%(sid,deploy,i,label)
+                        else:            img_name = passed_dir+'/S%s_D%s_I%s_NE.JPG'%(sid,deploy,i)
+                        cv2.imwrite(img_name,imgs[i])
+                        print('can not enhance img=%s,sid=%s,deploy=%s'%(i,sid,deploy))
+            else: #aggregation of the images will generate a JSON mapping file...
+                print('aggregation hours is > 1, proceeding to aggregate images by %s hours'%agg_hrs)
+                weekday = {0:'Mon',1:'Tues',2:'Wed',3:'Thur',4:'Fri',5:'Sat',6:'Sun'}
+                AL = select_aggregate_imgs(imgs,ts,ls=ls,hours=agg_hrs,sharp=sharp)
+                for d in sorted(AL):
+                    date_str = d.strftime('%y-%m-%d')
+                    weekday_str = weekday[d.weekday()]
+                    passed_dir = out_dir+'/passed_aggregated'
+                    if not os.path.exists(passed_dir): os.mkdir(passed_dir)
+                    for c in sorted(AL[d]):
+                        time_str = c.strftime('%H')
+                        img_name = passed_dir+'/S%s_D%s_DATE%s_%s_%s_L%s.JPG'%\
+                                   (sid,deploy,date_str,weekday_str,time_str,round(AL[d][c][1],2))
+                        cv2.imwrite(img_name,AL[d][c][0])
+    return True
+
+def process_image_partitions(T,params,cpus=12):
+    global result_list
+    p2 = mp.Pool(processes=cpus)
+
+    for cpu in T:  # balanced sid/deployments in ||
+        print('dispatching %s images to core=%s'%(T[cpu]['n'],cpu))
+        p2.apply_async(worker_image_partitions,
+                       args=(T[cpu]['imgs'],params),
+                       callback=collect_results)
+    p2.close()
+    p2.join()
+    return True
+
+def detect_events(imgs,ref,min_size=300):
+    x,events = 1,{'dark':{},'light':{},'bw':{},'rotated':{},'blurred':{},'flared':{}}
+    if len(imgs)>0:
+        if imgs[0].shape[0]>min_size:
+            while imgs[0].shape[0]//x>min_size: x+=1
+    for i in imgs:
+        if x>1:
+            imgA = resize(imgs[i],imgs[i].shape[1]//x,imgs[i].shape[0]//x)
+            refA = resize(ref,ref.shape[1]//x,ref.shape[0]//x)
+        else:
+            imgA = imgs[i]
+            refA = ref
+        bw  = chroma_dropped(imgA)
+        drk = too_dark(imgA)
+        lht = too_light(imgA)
+        blr = blurred(imgA)
+        flr = lens_flare(imgA)
+        rot = luma_rotated(refA,imgA)
+        if bw:  events['bw'][i]      = True
+        if drk: events['dark'][i]    = True
+        if lht: events['light'][i]   = True
+        if rot: events['rotated'][i] = True
+        if blr: events['blurred'][i] = True
+        if flr: events['flared'][i]  = True
+    return events
+
+#returns the ref image of the first good ref image: (color, sharp, etc..)
+def skip_to_ref(paths,width,height):
+    i,ref = 0,None
+    if len(paths)>0:
+        ref = read_crop_resize(paths[0],height=height,width=width)
+        while i<len(paths) and chroma_dropped(ref): #will find the first one that meets all the checks...
+            ref = read_crop_resize(paths[i],height=height,width=width)
+            i += 1
+    return ref
+
+def pad_imgs(raw_imgs,rot,width,height,pad):
+    pads = {}
+    if len(rot)>0:
+        pads = {i:get_rotation_pad(raw_imgs[i]) for i in sorted(set(rot).intersection(set(raw_imgs)))}
+        if len(pads)>0:
+            max_pad,avg_pad = max([pads[i] for i in pads]),int(round(sum([pads[i] for i in pads])/len(pads)))
+            if max_pad<min(height*pad,width*pad):
+                for i in sorted(raw_imgs):
+                    raw_imgs[i] = resize(crop(raw_imgs[i],pixels=max_pad),height=height,width=width)
+    return raw_imgs
+
+def apply_homography(ref,raw_imgs,rot,pixel_dist=100):
+    for i in raw_imgs:
+        if i in rot:
+            img,hmg  = homography(ref,raw_imgs[i],pixel_dist=pixel_dist)
+            raw_imgs[i] = img
+    return raw_imgs
+
+#imgs is a dictionary with potentially missing keys (due to events)
+def temporal_nn_imgs(imgs,events,ts,hours=4): #ts has all indexes
+    NN,n = {},len(ts)
+    for i in sorted(ts):
+        NN[i] = []
+        l,r = i-1,i+1
+        while l>0 and ts[l].date()==ts[i].date() and np.abs(ts[i]-ts[l]).total_seconds()<=(hours*60*60):
+            if l in imgs and l not in events['bw']: NN[i] += [l]
+            l-=1
+        while r<n and ts[r].date()==ts[i].date() and np.abs(ts[i]-ts[r]).total_seconds()<=(hours*60*60):
+            if r in imgs and r not in events['bw']: NN[i] += [r]
+            r+=1
+        NN[i] = sorted(NN[i])
+    return NN
+
+def select_aggregate_imgs(imgs,ts,ls=None,hours=1,sharp=2.0,composite=True): #for one sid and deploy setup...
+    D = {}
+    for i in imgs:
+        d = ts[i].date()
+        if ls is not None and len(set(ts).difference(set(ls)))<=0:
+            if d in D: D[d] += [[ts[i],ls[i],imgs[i]]] #0 is the default label
+            else:      D[d]  = [[ts[i],ls[i],imgs[i]]] #0 is the default label
+        else:
+            if d in D: D[d] += [[ts[i],0,imgs[i]]] #0 is the default label
+            else:      D[d]  = [[ts[i],0,imgs[i]]] #0 is the default label
+    for d in sorted(D): D[d] = sorted(D[d],key=lambda x: x[0])
+    A = {}
+    for d in sorted(D): #each day
+        A[d] = {}
+        min_ts,max_ts = np.min([x[0] for x in D[d]]),np.max([x[0] for x in D[d]])
+        range_ts = np.round(np.abs(max_ts-min_ts).total_seconds()/(60*60))
+        c_ts,CL = [],{} #time stamp clusters for unit that is hours long
+        for i in range(int(range_ts//hours)+1):
+            c = min_ts+dt.timedelta(hours=i*hours)
+            c_ts += [c]
+            CL[c] = []
+        c_ts += [dt.datetime.combine(max_ts,dt.time.max)]
+        for i in range(len(D[d])):
+            d_t = D[d][i][0]
+            for t in range(0,len(c_ts)-1,1):
+                if d_t>=c_ts[t] and d_t<c_ts[t+1]:
+                    CL[c_ts[t]] += [[D[d][i][-1],D[d][i][1]]]
+        for c in CL:
+            img_c,img_l = [e[0] for e in CL[c]],[e[1] for e in CL[c]]
+            if len(img_c)>0:
+                if len(img_c)>10: sharpness = sharp
+                else:             sharpness = sharp=sharp/len(img_c)
+                hmean = hue_mean(img_c)
+                smean = sat_mean(img_c)
+                if sharpness>0.0: vmean = sharpen(val_mean(img_c),amount=sharp)
+                else:             vmean = val_mean(img_c)
+                color = np.zeros_like(img_c[0])
+                color[:,:,0] = hmean
+                color[:,:,1] = smean
+                color[:,:,2] = vmean
+                color = cv2.cvtColor(color,cv2.COLOR_HSV2BGR)
+                label = np.mean(img_l)
+                if not composite: A[d][c] = CL[c][central_image(color,CL[c])]
+                else:             A[d][c] = [color,label]
+    return A
+
+#returns the index of the image from a list that has the smallest luma differential to the target
+def central_image(target,imgs): #imgs is a list here...
+    min_i = [None,None]
+    if len(imgs)>0:
+        min_i = [0,np.sum(luma_diff(target,imgs[0]))]
+        for i in range(len(imgs)):
+            lm_dff = np.sum(luma_diff(target,imgs[i]))
+            if lm_dff<=min_i[1]: min_i = [i,lm_dff]
+    return min_i

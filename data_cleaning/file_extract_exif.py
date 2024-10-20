@@ -11,7 +11,7 @@ cf_dir = ''
 db_scm = 'strc'
 
 # Extract relevant exif data by specifying exif tag & byte code.  cd 306 = date_time cd 270 = title (stream connect cat)
-def get_exif(path,tag,byte):
+def get_exif(path,tag='0th',byte=270):
     E = piexif.load(path)
     t = ''
     if tag in E:

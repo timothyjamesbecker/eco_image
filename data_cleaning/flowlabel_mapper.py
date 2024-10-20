@@ -7,7 +7,7 @@ des="""
 Flow Label Mapper
 Timothy James Becker 10-19-19 to 02-28-20
 ---------------------------------------------------
-Given flow label csv file and input director,
+Given flow label csv file and input directory,
 Builds new folders and moves all files that
 map to those labels which will prepare the
 data for categorical based ML"""
@@ -21,6 +21,7 @@ args = parser.parse_args()
 flow_label = args.flow_label
 in_dir     = args.in_dir
 out_dir    = args.out_dir
+
 if not os.path.exists(out_dir): os.mkdir(out_dir)
 with open(flow_label,'r') as f:
     data = [line.replace('\r','').replace('\n','').split(',') for line in f.readlines()]
@@ -47,5 +48,13 @@ for c in C:
         out_path = out_dir+'/label_%s/'%c+C[c][i].rsplit('/')[-1]
         if os.path.exists(in_path): good  += [in_path]; os.rename(in_path,out_path)
         else:                       error += [in_path]
+if len(good)<1:
+    good,error = [],[]
+    for c in C:
+        for i in range(len(C[c])):
+            in_path  = in_dir+C[c][i]
+            out_path = out_dir+'/label_%s/'%c+C[c][i].rsplit('/')[-1]
+            if os.path.exists(in_path): good  += [in_path]; os.rename(in_path,out_path)
+            else:                       error += [in_path]
 print('%s image paths had valid mappings and were moved...'%len(good))
 print('%s image paths were not mapped to a label and were not moved'%(error))
