@@ -705,11 +705,11 @@ def partition_train_test_valid(in_dir,class_idx,split=0.15,sub_sample=None,verbo
     if verbose:
         #rsplit('/')[-1].split('_')[1]
         V = sorted(list(set([v.split('/')[-1].split('_')[1] for v in train])))
-        print('training sites selected were:%s'%V)
+        print('%s training sites selected were:%s'%(len(V),V))
         V = sorted(list(set([v.split('/')[-1].split('_')[1] for v in test])))
-        print('testing sites selected were:%s'%V)
+        print('%s testing sites selected were:%s'%(len(V),V))
         V = sorted(list(set([v.split('/')[-1].split('_')[1] for v in valid])))
-        print('validation sites selected were:%s'%V)
+        print('%s validation sites selected were:%s'%(len(V),V))
     return train,valid,test
 
 def partition_data_paths(in_dir,class_idx,split=0.15,seed=None,
