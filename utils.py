@@ -704,6 +704,10 @@ def partition_train_test_valid(in_dir,class_idx,split=0.15,sub_sample=None,verbo
         valid = np.random.choice(valid,min(len(valid),int(round(sub_sample*len(valid)))),replace=False)
     if verbose:
         #rsplit('/')[-1].split('_')[1]
+        V = sorted(list(set([v.split('/')[-1].split('_')[1] for v in train])))
+        print('training sites selected were:%s'%V)
+        V = sorted(list(set([v.split('/')[-1].split('_')[1] for v in test])))
+        print('testing sites selected were:%s'%V)
         V = sorted(list(set([v.split('/')[-1].split('_')[1] for v in valid])))
         print('validation sites selected were:%s'%V)
     return train,valid,test
