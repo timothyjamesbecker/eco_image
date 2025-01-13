@@ -99,8 +99,8 @@ if __name__ == '__main__':
 
     des="""
     ---------------------------------------------------
-    TensorFlow/Keras based hyper-param modeler
-    Timothy James Becker 11-04-19 to 02-05-22
+    TensorFlow/Keras based hyper-param DCNN modeler
+    Timothy James Becker 11-04-19 to 01-13-25
     ---------------------------------------------------
     Given input directory with partitioned labels with images inside:
     in_dir/label_1, in_dir/label_2, ...
@@ -230,50 +230,50 @@ if __name__ == '__main__':
                 model.add(tf.keras.layers.Conv2D(X[i]['cmx'],(X[i]['kf'],X[i]['kf']),
                                                  activation='relu',input_shape=shapes[0],
                                                  padding='same',
-                                                 kernel_regularizer=tf.keras.regularizers.l2(l=X[i]['decay'])))
+                                                 kernel_regularizer=tf.keras.regularizers.l2(l2=X[i]['decay'])))
                 if X[i]['level'] >= 2:
                     model.add(tf.keras.layers.MaxPooling2D(pool_size=(X[i]['pool'],X[i]['pool'])))
                     model.add(tf.keras.layers.Dropout(X[i]['drop']))
                     model.add(tf.keras.layers.Conv2D(X[i]['cmx'],(X[i]['kf'],X[i]['kf']),activation='relu',
                                                      padding='same',
-                                                     kernel_regularizer=tf.keras.regularizers.l2(l=X[i]['decay'])))
+                                                     kernel_regularizer=tf.keras.regularizers.l2(l2=X[i]['decay'])))
                     if X[i]['level'] >= 3:
                         model.add(tf.keras.layers.Dropout(X[i]['drop']))
                         model.add(tf.keras.layers.Conv2D(2*X[i]['cmx'],(X[i]['kf'],X[i]['kf']),activation='relu',
                                                          padding='same',
-                                                         kernel_regularizer=tf.keras.regularizers.l2(l=X[i]['decay'])))
+                                                         kernel_regularizer=tf.keras.regularizers.l2(l2=X[i]['decay'])))
                         if X[i]['level'] >= 4:
                             model.add(tf.keras.layers.MaxPooling2D(pool_size=(X[i]['pool'],X[i]['pool'])))
                             model.add(tf.keras.layers.Dropout(X[i]['drop']))
                             model.add(tf.keras.layers.Conv2D(2*X[i]['cmx'],(X[i]['kf'],X[i]['kf']),activation='relu',
                                                              padding='same',
-                                                             kernel_regularizer=tf.keras.regularizers.l2(l=X[i]['decay'])))
+                                                             kernel_regularizer=tf.keras.regularizers.l2(l2=X[i]['decay'])))
                             if X[i]['level'] >= 5:
                                 model.add(tf.keras.layers.Dropout(X[i]['drop']))
                                 model.add(tf.keras.layers.Conv2D(4*X[i]['cmx'],(X[i]['kf'],X[i]['kf']),activation='relu',
                                                                  padding='same',
-                                                                 kernel_regularizer=tf.keras.regularizers.l2(l=X[i]['decay'])))
+                                                                 kernel_regularizer=tf.keras.regularizers.l2(l2=X[i]['decay'])))
                                 if X[i]['level'] >= 6:
                                     model.add(tf.keras.layers.MaxPooling2D(pool_size=(X[i]['pool'],X[i]['pool'])))
                                     model.add(tf.keras.layers.Dropout(X[i]['drop']))
                                     model.add(tf.keras.layers.Conv2D(4*X[i]['cmx'],(X[i]['kf'],X[i]['kf']),activation='relu',
                                                                      padding='same',
-                                                                     kernel_regularizer=tf.keras.regularizers.l2(l=X[i]['decay'])))
+                                                                     kernel_regularizer=tf.keras.regularizers.l2(l2=X[i]['decay'])))
                                     if X[i]['level'] >= 7:
                                         model.add(tf.keras.layers.Dropout(X[i]['drop']))
                                         model.add(tf.keras.layers.Conv2D(2*X[i]['cmx'],(X[i]['kf'],X[i]['kf']),activation='relu',
                                                                          padding='same',
-                                                                         kernel_regularizer=tf.keras.regularizers.l2(l=X[i]['decay'])))
+                                                                         kernel_regularizer=tf.keras.regularizers.l2(l2=X[i]['decay'])))
                                         if X[i]['level'] >= 8:
                                             model.add(tf.keras.layers.MaxPooling2D(pool_size=(X[i]['pool'],X[i]['pool'])))
                                             model.add(tf.keras.layers.Dropout(X[i]['drop']))
                                             model.add(tf.keras.layers.Conv2D(2*X[i]['cmx'],(X[i]['kf'],X[i]['kf']),activation='relu',
                                                                              padding='same',
-                                                                             kernel_regularizer=tf.keras.regularizers.l2(l=X[i]['decay'])))
+                                                                             kernel_regularizer=tf.keras.regularizers.l2(l2=X[i]['decay'])))
                 model.add(tf.keras.layers.Flatten())
                 if X[i]['cmx']>=4:
                     model.add(tf.keras.layers.Dense(X[i]['cmx'], activation='relu',
-                                                    kernel_regularizer=tf.keras.regularizers.l2(l=X[i]['decay'])))
+                                                    kernel_regularizer=tf.keras.regularizers.l2(l2=X[i]['decay'])))
                     model.add(tf.keras.layers.Dropout(2*X[i]['drop']))
                 model.add(tf.keras.layers.Dense(classes, activation='softmax',dtype=np.float32))
                 model.compile(loss='sparse_categorical_crossentropy',
@@ -317,11 +317,11 @@ if __name__ == '__main__':
                 #                          batch_size=X[i]['batch_size'],
                 #                          gray_scale=gray_scale)
 
-                H = model.fit_generator(train_generator,
-                                        steps_per_epoch=len(train_paths)//X[i]['batch_size'],
-                                        validation_data=test_generator,
-                                        validation_steps=len(test_paths)//X[i]['batch_size'],
-                                        epochs=X[i]['epochs'],verbose=0,workers=1)
+                H = model.fit(train_generator,
+                              steps_per_epoch=len(train_paths)//X[i]['batch_size'],
+                              validation_data=test_generator,
+                              validation_steps=len(test_paths)//X[i]['batch_size'],
+                              epochs=X[i]['epochs'],verbose=0)
 
 
                 stop = time.time()
@@ -332,7 +332,8 @@ if __name__ == '__main__':
                 CM[i] = utils.confusion_matrix(pred,true,print_result=True)
                 prec,rec,f1 = utils.metrics(CM[i])
                 run_score = sum([f1[k] for k in f1])/(classes*1.0)
-                print('%s Measured CNN accuracy for %s classes using %s test images'%(run_score,classes,len(pred)))
+                print('%s Estimated average CNN F1 accuracy for %s classes using %s images'%(run_score,classes,len(pred)))
+                print('%s Estimated total F1 accuracy using %s images'%( classes*np.prod([f1[k] for k in f1])/sum([f1[k] for k in f1]),len(pred)))
 
                 S['score'] = run_score
                 if best_score<S['score']:
@@ -344,7 +345,7 @@ if __name__ == '__main__':
                                 (class_partition,X[i]['cmx'],X[i]['batch_size'],str(gray_scale)[0],shps)
                     best_score = S['score']
                     with open(best_score_path,'w') as f: json.dump(S,f)
-                    model_path = out_dir+'/model.'+class_partition+'.hdf5'
+                    model_path = out_dir+'/model.'+class_partition+'.keras'
                     model.save(model_path)
                     for png in glob.glob(out_dir+'/*.png'): os.remove(png)
                     utils.plot_train_test(H.history,title,out_path=out_dir+'/acc_loss.%s.png'%plt_path)
