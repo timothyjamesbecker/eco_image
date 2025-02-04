@@ -1,6 +1,7 @@
 # eco_image
 tools for organization and automatic manipulation of ecological image data sets
 
+citation:
 ```
 Timothy James Becker, Derin Gezgin, Jun Yi He Wu, Mary Becker. A framework for river connectivity classification using temporal image
 processing and attention based neural networks. arxiv.org/abs/2502.00474. Retrieved from http://arxiv.org/abs/2502.00474.
